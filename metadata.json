@@ -5,5 +5,5 @@
 
   "homepage": "https://github.com/giancosta86/ethereal",
 
-  "dependencies": "github.com/giancosta86/ethereal"
+  "dependencies": ["github.com/giancosta86/ethereal"]
 }
