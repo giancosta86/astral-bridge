@@ -17,7 +17,7 @@ fn -detect-from-package-json { |directory|
   var version-field = (
     jq -r '.engines.node // ""' $package-path |
       str:trim-space (all) |
-      seq:empty-to-default
+      seq:coalesce-empty
   )
 
   re:find '.*?(\d+(?:\.\d+)*).*' $version-field | each { |match|
