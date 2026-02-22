@@ -1,21 +1,23 @@
 use path
-use github.com/giancosta86/ethereal/fs
 use ./version
-
-var initial-version = v13.0.0
 
 var nvmrc-version = v18.17.1
 
 var package-json-version = v16.14.0
 
-fn -write-nvmrc-file {
+fn write-test-nvmrc {
   echo $nvmrc-version > .nvmrc
 }
 
-fn -write-package-json-file {
+fn write-test-package-json {
   var version-for-json = $package-json-version[1..]
 
-  echo '{ "engines": { "node": ">='$version-for-json' <90" }}' > package.json
+  put [
+    &engines=[
+      &node='>='$version-for-json' <90'
+    ]
+  ] |
+    to-json > package.json
 }
 
 >> 'Retrieving the requested NodeJS version' {
@@ -24,7 +26,7 @@ fn -write-package-json-file {
       fs:with-temp-dir { |temp-dir|
         cd $temp-dir
 
-        -write-nvmrc-file
+        write-test-nvmrc
 
         version:detect-in-directory . |
           should-be $nvmrc-version
@@ -37,7 +39,7 @@ fn -write-package-json-file {
       fs:with-temp-dir { |temp-dir|
         cd $temp-dir
 
-        -write-package-json-file
+        write-test-package-json
 
         version:detect-in-directory . |
           should-be $package-json-version
@@ -50,8 +52,8 @@ fn -write-package-json-file {
       fs:with-temp-dir { |temp-dir|
         cd $temp-dir
 
-        -write-nvmrc-file
-        -write-package-json-file
+        write-test-nvmrc
+        write-test-package-json
 
         version:detect-in-directory . |
           should-be $nvmrc-version
@@ -65,7 +67,7 @@ fn -write-package-json-file {
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
-          -write-nvmrc-file
+          write-test-nvmrc
 
           path:join A B C D |
             fs:mkcd (all)
@@ -84,7 +86,7 @@ fn -write-package-json-file {
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
-          -write-package-json-file
+          write-test-package-json
 
           path:join A B C D |
             fs:mkcd (all)
@@ -103,8 +105,8 @@ fn -write-package-json-file {
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
-          -write-nvmrc-file
-          -write-package-json-file
+          write-test-nvmrc
+          write-test-package-json
 
           path:join A B C D |
             fs:mkcd (all)

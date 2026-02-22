@@ -2,9 +2,21 @@ use os
 use path
 use re
 use str
-use github.com/giancosta86/ethereal/console
-use github.com/giancosta86/ethereal/lang
-use github.com/giancosta86/ethereal/seq
+use github.com/giancosta86/ethereal/v1/lang
+use github.com/giancosta86/ethereal/v1/seq
+
+fn -detect-from-nvmrc { |directory|
+  var nvmrc-path = (path:join $directory .nvmrc)
+
+  if (not (os:is-regular $nvmrc-path)) {
+    put $nil
+    return
+  }
+
+  slurp < $nvmrc-path |
+    str:trim-space (all) |
+    seq:empty-to-default
+}
 
 fn -detect-from-package-json { |directory|
   var package-path = (path:join $directory package.json)
@@ -15,33 +27,38 @@ fn -detect-from-package-json { |directory|
   }
 
   var version-field = (
-    jq -r '.engines.node // ""' $package-path |
+    from-json < $package-path |
+      seq:drill-down (all) engines node &default='' |
       str:trim-space (all) |
-      seq:coalesce-empty
+      seq:empty-to-default
   )
 
-  re:find '.*?(\d+(?:\.\d+)*).*' $version-field | each { |match|
-    put 'v'$match[groups][1][text]
-  }
-}
-
-fn -detect-from-nvmrc { |directory|
-  var nvmrc-path = (path:join $directory .nvmrc)
-
-  if (not (os:is-regular $nvmrc-path)) {
+  if (not $version-field) {
     put $nil
     return
   }
 
-  var version = (
-    slurp < $nvmrc-path |
-      str:trim-space (all)
-  )
+  var matches = [(re:find '.*?(\d+(?:\.\d+)*).*' $version-field)]
 
-  lang:ternary (seq:is-non-empty $version) $version $nil
+  if (seq:is-non-empty $matches) {
+    put 'v'$matches[0][groups][1][text]
+  } else {
+    put $nil
+  }
 }
 
-fn detect-in-directory { |directory|
+#
+# Returns the requested NodeJS version in the given directory, looking for it:
+#
+# 1. In the .nvmrc file
+#
+# 2. In the `engines/node` field within package.json
+#
+# If no source is available, $nil is returned.
+#
+fn detect-in-directory { |@arguments|
+  var directory = (lang:get-single-input $arguments)
+
   coalesce (
     -detect-from-nvmrc $directory
   ) (
@@ -49,6 +66,13 @@ fn detect-in-directory { |directory|
   )
 }
 
+#
+# Looks for a requested NodeJS version, applying the algorithm described for `detect-in-directory`,
+# from the given `initial-directory` up to the root directory, stopping as soon as a requested version
+# is found or the root directory has been scanned.
+#
+# Returns either the requested version or $nil.
+#
 fn detect-recursively { |initial-directory|
   var current-directory = (path:abs $initial-directory)
 
