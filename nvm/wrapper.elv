@@ -29,7 +29,15 @@ var nvm~ = (
         bash -c (all)
     )]
 
-    all $command-lines[1..-1] | each $echo~
+    var output-lines = (
+      if $current-node-version {
+        put $command-lines[1..-1]
+      } else {
+        put $command-lines[..-1]
+      }
+    )
+
+    all $output-lines | each $echo~
 
     set current-node-version = $command-lines[-1]
   }
