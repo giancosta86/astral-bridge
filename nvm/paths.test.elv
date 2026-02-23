@@ -1,12 +1,12 @@
 use path
-use ./bridge
+use ./wrapper
 use ./paths
 
 >> 'nvm' {
   >> 'ensuring current NodeJS is in path' {
     var expected-version = v21.7.3
 
-    bridge:nvm use $expected-version
+    wrapper:nvm use $expected-version
 
     paths:ensure-current-nodejs
 

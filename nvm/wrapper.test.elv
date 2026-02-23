@@ -1,10 +1,10 @@
 use os
-use ./bridge
+use ./wrapper
 
-var nvm~ = $bridge:nvm~
+var nvm~ = $wrapper:nvm~
 
 >> 'nvm' {
-  >> 'bridged command' {
+  >> 'wrapperd command' {
     >> 'installing a NodeJS version' {
       var expected-version = v12.3.0
 

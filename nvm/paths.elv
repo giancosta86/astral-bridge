@@ -1,5 +1,5 @@
 use path
-use ./bridge
+use ./wrapper
 use ./files
 
 fn get-without-nodejs {
@@ -20,6 +20,6 @@ fn -ensure-nvm-node-executable-in-paths { |node-executable|
 }
 
 fn ensure-current-nodejs {
-  bridge:nvm which current |
+  wrapper:nvm which current |
     -ensure-nvm-node-executable-in-paths (all)
 }
