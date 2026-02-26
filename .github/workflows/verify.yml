@@ -21,8 +21,14 @@ jobs:
         run: |
           use epm
 
-          epm:install github.com/giancosta86/velvet
+          epm:install github.com/giancosta86/epm-plus
 
-          use github.com/giancosta86/velvet
+          use github.com/giancosta86/epm-plus/epm-plus
+
+          epm-plus:patch-epm
+
+          epm:install
+
+          use github.com/giancosta86/velvet/v3/velvet
 
           velvet:velvet &must-pass
