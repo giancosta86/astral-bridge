@@ -1,5 +1,5 @@
 use path
-use ./version
+use ./requested
 
 var nvmrc-version = v18.17.1
 
@@ -28,7 +28,7 @@ fn write-test-package-json {
 
         write-test-nvmrc
 
-        version:detect-in-directory . |
+        requested:detect-in-directory . |
           should-be $nvmrc-version
       }
     }
@@ -41,7 +41,7 @@ fn write-test-package-json {
 
         write-test-package-json
 
-        version:detect-in-directory . |
+        requested:detect-in-directory . |
           should-be $package-json-version
       }
     }
@@ -55,7 +55,7 @@ fn write-test-package-json {
         write-test-nvmrc
         write-test-package-json
 
-        version:detect-in-directory . |
+        requested:detect-in-directory . |
           should-be $nvmrc-version
       }
     }
@@ -72,10 +72,10 @@ fn write-test-package-json {
           path:join A B C D |
             fs:mkcd (all)
 
-          version:detect-in-directory . |
+          requested:detect-in-directory . |
             should-be $nil
 
-          version:detect-recursively . |
+          requested:detect-recursively . |
             should-be $nvmrc-version
         }
       }
@@ -91,10 +91,10 @@ fn write-test-package-json {
           path:join A B C D |
             fs:mkcd (all)
 
-          version:detect-in-directory . |
+          requested:detect-in-directory . |
             should-be $nil
 
-          version:detect-recursively . |
+          requested:detect-recursively . |
             should-be $package-json-version
         }
       }
@@ -111,10 +111,10 @@ fn write-test-package-json {
           path:join A B C D |
             fs:mkcd (all)
 
-          version:detect-in-directory . |
+          requested:detect-in-directory . |
             should-be $nil
 
-          version:detect-recursively . |
+          requested:detect-recursively . |
             should-be $nvmrc-version
         }
       }

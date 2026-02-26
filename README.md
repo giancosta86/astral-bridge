@@ -2,6 +2,8 @@
 
 _Bridge between the Elvish shell and NodeJS_
 
+![Logo](./logo.jpg)
+
 **astral-bridge** is a lightweight but effective toolkit seamlessly connecting the [Elvish](https://elv.sh/) shell with the [NodeJS](https://nodejs.org/en) ecosystem.
 
 ## Installation
@@ -47,7 +49,7 @@ $nvm:after-chdir~ $pwd
 
 ### Detecting the requested NodeJS version
 
-The `version` module provides utilities for detecting the _requested NodeJS version_; it is mostly used by the **nvm** wrapper, but feel free to consult the [module](version.elv) for details about its functions.
+The `version/requested` module provides utilities for detecting the _requested NodeJS version_; it is mostly used by the **nvm** wrapper, but feel free to consult the [module](version/requested.elv) for details about its functions.
 
 ## Further references
 
