@@ -4,7 +4,7 @@ _Bridge between the Elvish shell and NodeJS_
 
 ![Logo](./logo.jpg)
 
-**astral-bridge** is a lightweight but effective toolkit seamlessly connecting the [Elvish](https://elv.sh/) shell with the [NodeJS](https://nodejs.org/en) ecosystem.
+**astral-bridge** is a lightweight but effective library seamlessly connecting the [Elvish](https://elv.sh/) shell with the [NodeJS](https://nodejs.org/en) ecosystem.
 
 ## Installation
 
@@ -26,9 +26,9 @@ or any other specific Git reference.
 
 ## Usage
 
-### Nvm wrapper
+### nvm wrapper
 
-The `nvm` command for Bash is entirely wrapped by the `nvm` function in the `nvm` module; in particular, you can access it by adding the following lines to your `rc.elv` file:
+The `nvm` command for Bash is transparently wrapped by the `nvm` function in the `nvm` module; in particular, you can access it by adding the following lines to your `rc.elv` file:
 
 ```elvish
 use github.com/giancosta86/astral-bridge/v1/nvm
@@ -37,7 +37,7 @@ use github.com/giancosta86/astral-bridge/v1/nvm
 var nvm~ = $nvm:nvm~
 ```
 
-Optionally, you can add these lines to fully support a per-directory NodeJS version:
+Optionally, you can add these lines to fully support a _per-directory NodeJS version_ via **nvm**:
 
 ```elvish
 # This ensures that the NodeJS version is always the one requested by the .nvmrc file or the `engines/node` field in package.json.

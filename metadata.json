@@ -3,7 +3,7 @@
 
   "maintainers": ["Gianluca Costa <gianluca@gianlucacosta.info>"],
 
-  "homepage": "https://github.com/giancosta86/ethereal",
+  "homepage": "https://github.com/giancosta86/astral-bridge",
 
   "dependencies": ["github.com/giancosta86/ethereal@v1"],
 
