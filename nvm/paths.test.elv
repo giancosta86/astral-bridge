@@ -1,6 +1,5 @@
 use path
 use ../tests/shared
-use ./files
 use ./paths
 use ./wrapper
 

@@ -2,7 +2,6 @@ use os
 use path
 use ../tests/shared
 use ./hooks
-use ./paths
 use ./wrapper
 
 var nvm~ = $wrapper:nvm~
