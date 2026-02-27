@@ -6,36 +6,25 @@ var nvm~ = $wrapper:nvm~
 
 >> 'nvm' {
   >> 'wrapper command' {
-    >> 'installing a NodeJS version' {
-      nvm use $shared:expected-version
-
-      >> 'should be persistent' {
-        nvm current |
-          should-be $shared:expected-version
-      }
-
-      >> 'should make a binary available' {
-        nvm which current |
-          os:is-regular (all) |
-          should-be $true
-      }
-    }
-
     >> 'switching NodeJS version' {
-      fn install-and-check { |version|
-        nvm install --no-progress $version
-
+      fn use-and-check { |version|
         nvm use $version
 
         nvm current |
           should-be $version
+
+        var current-nvm-binary = (nvm which current)
+
+        os:is-regular $current-nvm-binary |
+          should-be $true
+
+        put $current-nvm-binary |
+          should-contain $version
       }
 
-      >> 'should be persistent' {
-        install-and-check $shared:expected-version
+      use-and-check $shared:main-version
 
-        install-and-check $shared:alternative-version
-      }
+      use-and-check $shared:alternative-version
     }
   }
 }

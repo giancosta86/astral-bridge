@@ -1,5 +1,6 @@
 use str
 use ./files
+use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
 #
@@ -10,7 +11,7 @@ var nvm~ = (
 
   put { |@arguments|
     var should-restore-current-node-version = (
-      and $current-node-version (not-eq $arguments[0] use)
+      and $current-node-version (!=s $arguments[0] use)
     )
 
     var restore-current-node-version-command = (
@@ -21,7 +22,7 @@ var nvm~ = (
       }
     )
 
-    var command-lines = [(
+    var bash-output-lines = [(
       all [
         'source '$files:bash-script
 
@@ -36,16 +37,11 @@ var nvm~ = (
         bash -c (all)
     )]
 
-    var output-lines = (
-      if $should-restore-current-node-version {
-        put $command-lines[1..-1]
-      } else {
-        put $command-lines[..-1]
-      }
-    )
+    var lines-to-skip = (lang:ternary $should-restore-current-node-version 1 0)
 
-    all $output-lines | each $echo~
+    all $bash-output-lines[$lines-to-skip..-1] |
+      each $echo~
 
-    set current-node-version = $command-lines[-1]
+    set current-node-version = $bash-output-lines[-1]
   }
 )

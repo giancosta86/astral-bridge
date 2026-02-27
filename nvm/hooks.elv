@@ -17,6 +17,10 @@ fn -use-requested-node-version { |path|
   }
 }
 
+#
+# Registers the **after-chdir** hook ensuring that the requested NodeJS version is being used by nvm;
+# additionally, the hook is run on the current directory.
+#
 fn register-after-chdir {
   set after-chdir = (conj $after-chdir $-use-requested-node-version~)
 

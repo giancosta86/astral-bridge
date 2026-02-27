@@ -7,24 +7,28 @@ use ./wrapper
 
 var nvm~ = $wrapper:nvm~
 
+
+fn expect-main-version {
+  nvm current |
+    should-be $shared:main-version
+
+  put $paths |
+    should-contain $shared:main-path-entry
+
+  put $paths |
+    should-not-contain $shared:alternative-path-entry
+}
+
 >> 'nvm' {
   >> 'hooks' {
     >> 'after-chdir' {
-      >> 'when no version is requested' {
-          tmp paths = (paths:get-without-node)
-
-          fs:with-temp-dir { |temp-dir|
-            hooks:-use-requested-node-version $temp-dir
-          }
-        }
-
-      >> 'when version is requested via .nvmrc file' {
+      >> 'when version is requested via .nvmrc file in ancestor directory' {
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
           nvm use $shared:alternative-version
 
-          echo $shared:expected-version > .nvmrc
+          echo $shared:main-version > .nvmrc
 
           var nested-dir = (path:join alpha beta gamma)
 
@@ -32,25 +36,21 @@ var nvm~ = $wrapper:nvm~
 
           hooks:-use-requested-node-version $nested-dir
 
-          put $paths |
-            should-contain (
-              path:join ~ .nvm versions node $shared:expected-version bin |
-                path:abs (all)
-            )
+          expect-main-version
         }
       }
 
-      >> 'when version is requested via package.json' {
+      >> 'when version is requested via package.json in ancestor directory' {
         nvm use $shared:alternative-version
 
-        var expected-version-base = $shared:expected-version[1..]
+        var main-version-base = $shared:main-version[1..]
 
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
           put [
             &engines=[
-              &node=$expected-version-base
+              &node=$main-version-base
             ]
           ] |
             to-json > package.json
@@ -61,11 +61,7 @@ var nvm~ = $wrapper:nvm~
 
           hooks:-use-requested-node-version $nested-dir
 
-          put $paths |
-            should-contain (
-              path:join ~ .nvm versions node $shared:expected-version bin |
-                path:abs (all)
-            )
+          expect-main-version
         }
       }
 
@@ -76,18 +72,14 @@ var nvm~ = $wrapper:nvm~
           fs:with-temp-dir { |temp-dir|
             cd $temp-dir
 
-            nvm current |
-              should-be $shared:alternative-version
-
-            echo $shared:expected-version > .nvmrc
+            echo $shared:main-version > .nvmrc
 
             var previous-after-chdir = $after-chdir
 
             try {
               hooks:register-after-chdir
 
-              nvm current |
-                should-be $shared:expected-version
+              expect-main-version
             } finally {
               set after-chdir = $previous-after-chdir
             }

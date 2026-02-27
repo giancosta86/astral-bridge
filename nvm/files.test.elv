@@ -5,7 +5,7 @@ use ./files
   >> 'files' {
     >> 'testing for downloaded NodeJS bin directory' {
       >> 'when it is actually a NodeJS path' {
-        path:join $files:downloaded-node-root node v20.15.1 |
+        path:join $files:downloaded-node-root v20.15.1 |
           files:is-not-downloaded-node |
           should-be $false
       }
