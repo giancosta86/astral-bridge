@@ -68,6 +68,32 @@ var nvm~ = $wrapper:nvm~
             )
         }
       }
+
+      >> 'registration' {
+        >> 'should run the hook on the current directory' {
+          nvm use $shared:alternative-version
+
+          fs:with-temp-dir { |temp-dir|
+            cd $temp-dir
+
+            nvm current |
+              should-be $shared:alternative-version
+
+            echo $shared:expected-version > .nvmrc
+
+            var previous-after-chdir = $after-chdir
+
+            try {
+              hooks:register-after-chdir
+
+              nvm current |
+                should-be $shared:expected-version
+            } finally {
+              set after-chdir = $previous-after-chdir
+            }
+          }
+        }
+      }
     }
   }
 }
