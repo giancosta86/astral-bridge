@@ -11,10 +11,10 @@ var nvm~ = $wrapper:nvm~
   >> 'hooks' {
     >> 'after-chdir' {
       >> 'when no version is requested' {
-          tmp paths = (paths:get-without-nodejs)
+          tmp paths = (paths:get-without-node)
 
           fs:with-temp-dir { |temp-dir|
-            hooks:-use-requested-nodejs-version $temp-dir
+            hooks:-use-requested-node-version $temp-dir
           }
         }
 
@@ -30,7 +30,7 @@ var nvm~ = $wrapper:nvm~
 
           os:mkdir-all $nested-dir
 
-          hooks:-use-requested-nodejs-version $nested-dir
+          hooks:-use-requested-node-version $nested-dir
 
           put $paths |
             should-contain (
@@ -59,7 +59,7 @@ var nvm~ = $wrapper:nvm~
 
           os:mkdir-all $nested-dir
 
-          hooks:-use-requested-nodejs-version $nested-dir
+          hooks:-use-requested-node-version $nested-dir
 
           put $paths |
             should-contain (

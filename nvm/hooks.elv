@@ -3,7 +3,7 @@ use ../version/requested
 use ./wrapper
 use ./paths
 
-fn -use-requested-nodejs-version { |path|
+fn -use-requested-node-version { |path|
   var requested-node-version = (requested:detect-recursively $path)
 
   if $requested-node-version {
@@ -12,13 +12,13 @@ fn -use-requested-nodejs-version { |path|
     if (not-eq $current-node-version $requested-node-version) {
       wrapper:nvm install --no-progress $requested-node-version
 
-      paths:ensure-current-nodejs
+      paths:ensure-current-node
     }
   }
 }
 
 fn register-after-chdir {
-  set after-chdir = (conj $after-chdir $-use-requested-nodejs-version~)
+  set after-chdir = (conj $after-chdir $-use-requested-node-version~)
 
-  -use-requested-nodejs-version $pwd
+  -use-requested-node-version $pwd
 }

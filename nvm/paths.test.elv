@@ -9,7 +9,7 @@ var nvm~ = $wrapper:nvm~
   >> 'ensuring current NodeJS is in path' {
     nvm use $shared:expected-version
 
-    paths:ensure-current-nodejs
+    paths:ensure-current-node
 
     var expected-path-entry = (
       path:join ~ .nvm versions node $shared:expected-version bin |
