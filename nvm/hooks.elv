@@ -10,7 +10,7 @@ fn -use-requested-nodejs-version { |path|
     var current-node-version = (wrapper:nvm current | lang:ensure-put)
 
     if (not-eq $current-node-version $requested-node-version) {
-      wrapper:nvm install $requested-node-version
+      wrapper:nvm install --no-progress $requested-node-version
 
       paths:ensure-current-nodejs
     }

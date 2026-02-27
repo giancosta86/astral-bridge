@@ -23,7 +23,7 @@ var nvm~ = $wrapper:nvm~
 
     >> 'switching NodeJS version' {
       fn install-and-check { |version|
-        nvm install $version
+        nvm install --no-progress $version
 
         nvm use $version
 
