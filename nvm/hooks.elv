@@ -3,7 +3,7 @@ use ../version/requested
 use ./wrapper
 use ./paths
 
-fn after-chdir { |path|
+fn -use-requested-nodejs-version { |path|
   var requested-node-version = (requested:detect-recursively $path)
 
   if $requested-node-version {
@@ -15,4 +15,10 @@ fn after-chdir { |path|
       paths:ensure-current-nodejs
     }
   }
+}
+
+fn register-after-chdir {
+  set after-chdir = (conj $after-chdir $-use-requested-nodejs-version~)
+
+  -use-requested-nodejs-version $pwd
 }

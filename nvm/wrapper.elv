@@ -2,12 +2,19 @@ use str
 use ./files
 use github.com/giancosta86/ethereal/v1/seq
 
+#
+# Wraps the core Bash script for nvm - forwarding all of its arguments.
+#
 var nvm~ = (
   var current-node-version = $nil
 
   put { |@arguments|
+    var should-restore-current-node-version = (
+      and $current-node-version (not-eq $arguments[0] use)
+    )
+
     var restore-current-node-version-command = (
-      if $current-node-version {
+      if $should-restore-current-node-version {
         put 'nvm use '$current-node-version
       } else {
         put ''
@@ -16,7 +23,7 @@ var nvm~ = (
 
     var command-lines = [(
       all [
-        'source '$files:boot-script
+        'source '$files:bash-script
 
         $restore-current-node-version-command
 
@@ -30,7 +37,7 @@ var nvm~ = (
     )]
 
     var output-lines = (
-      if $current-node-version {
+      if $should-restore-current-node-version {
         put $command-lines[1..-1]
       } else {
         put $command-lines[..-1]

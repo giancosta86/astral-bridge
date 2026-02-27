@@ -40,11 +40,7 @@ var nvm~ = $nvm:nvm~
 Optionally, you can add these lines to fully support a _per-directory NodeJS version_ via **nvm**:
 
 ```elvish
-# This ensures that the NodeJS version is always the one requested by the .nvmrc file or the `engines/node` field in package.json.
-set after-chdir = (conj $after-chdir $nvm:after-chdir~)
-
-# This ensures that the cd-hook is called when opening the shell, too.
-$nvm:after-chdir~ $pwd
+nvm:register-after-chdir
 ```
 
 ### Detecting the requested NodeJS version

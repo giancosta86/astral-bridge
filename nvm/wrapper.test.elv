@@ -1,18 +1,17 @@
 use os
+use ../tests/shared
 use ./wrapper
 
 var nvm~ = $wrapper:nvm~
 
 >> 'nvm' {
-  >> 'wrapperd command' {
+  >> 'wrapper command' {
     >> 'installing a NodeJS version' {
-      var expected-version = v12.3.0
-
-      nvm install $expected-version
+      nvm use $shared:expected-version
 
       >> 'should be persistent' {
         nvm current |
-          should-be $expected-version
+          should-be $shared:expected-version
       }
 
       >> 'should make a binary available' {
@@ -33,9 +32,9 @@ var nvm~ = $wrapper:nvm~
       }
 
       >> 'should be persistent' {
-        install-and-check v12.3.0
+        install-and-check $shared:expected-version
 
-        install-and-check v21.7.3
+        install-and-check $shared:alternative-version
       }
     }
   }

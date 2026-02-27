@@ -1,19 +1,22 @@
 use path
-use ./wrapper
+use ../tests/shared
 use ./paths
+use ./wrapper
+
+var nvm~ = $wrapper:nvm~
 
 >> 'nvm' {
   >> 'ensuring current NodeJS is in path' {
-    var expected-version = v21.7.3
-
-    wrapper:nvm use $expected-version
+    nvm use $shared:expected-version
 
     paths:ensure-current-nodejs
 
-    has-value $paths (
-      path:join ~ .nvm versions node $expected-version bin |
+    var expected-path-entry = (
+      path:join ~ .nvm versions node $shared:expected-version bin |
         path:abs (all)
-    ) |
-      should-be $true
+    )
+
+    put $paths  |
+      should-contain $expected-path-entry
   }
 }

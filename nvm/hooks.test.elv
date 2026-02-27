@@ -1,7 +1,11 @@
 use os
 use path
+use ../tests/shared
 use ./hooks
 use ./paths
+use ./wrapper
+
+var nvm~ = $wrapper:nvm~
 
 >> 'nvm' {
   >> 'hooks' {
@@ -10,34 +14,36 @@ use ./paths
           tmp paths = (paths:get-without-nodejs)
 
           fs:with-temp-dir { |temp-dir|
-            hooks:after-chdir $temp-dir
+            hooks:-use-requested-nodejs-version $temp-dir
           }
         }
 
       >> 'when version is requested via .nvmrc file' {
-        var expected-version = v22.17.1
-
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
-          echo $expected-version > .nvmrc
+          nvm use $shared:alternative-version
+
+          echo $shared:expected-version > .nvmrc
 
           var nested-dir = (path:join alpha beta gamma)
 
           os:mkdir-all $nested-dir
 
-          hooks:after-chdir $nested-dir
+          hooks:-use-requested-nodejs-version $nested-dir
 
           put $paths |
             should-contain (
-              path:join ~ .nvm versions node $expected-version bin |
+              path:join ~ .nvm versions node $shared:expected-version bin |
                 path:abs (all)
             )
         }
       }
 
       >> 'when version is requested via package.json' {
-        var expected-version-base = 16.14.2
+        nvm use $shared:alternative-version
+
+        var expected-version-base = $shared:expected-version[1..]
 
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
@@ -53,11 +59,11 @@ use ./paths
 
           os:mkdir-all $nested-dir
 
-          hooks:after-chdir $nested-dir
+          hooks:-use-requested-nodejs-version $nested-dir
 
           put $paths |
             should-contain (
-              path:join ~ .nvm versions node 'v'$expected-version-base bin |
+              path:join ~ .nvm versions node $shared:expected-version bin |
                 path:abs (all)
             )
         }
