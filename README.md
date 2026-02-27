@@ -4,7 +4,7 @@ _Bridge between the Elvish shell and NodeJS_
 
 ![Logo](./logo.jpg)
 
-**astral-bridge** is a lightweight but effective library seamlessly connecting the [Elvish](https://elv.sh/) shell with the [NodeJS](https://nodejs.org/en) ecosystem.
+**astral-bridge** is a lightweight library seamlessly connecting the [Elvish](https://elv.sh/) shell with the [NodeJS](https://nodejs.org/en) ecosystem.
 
 ## Installation
 
