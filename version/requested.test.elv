@@ -22,101 +22,89 @@ fn write-test-package-json {
 
 >> 'Retrieving the requested NodeJS version' {
   >> 'from a directory containing only .nvmrc' {
-    >> 'should emit such version' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
+    fs:with-temp-dir { |temp-dir|
+      cd $temp-dir
 
-        write-test-nvmrc
+      write-test-nvmrc
 
-        requested:detect-in-directory . |
-          should-be $nvmrc-version
-      }
+      requested:detect-in-directory . |
+        should-be $nvmrc-version
     }
   }
 
   >> 'from a directory containing only package.json field' {
-    >> 'should emit such version' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
+    fs:with-temp-dir { |temp-dir|
+      cd $temp-dir
 
-        write-test-package-json
+      write-test-package-json
 
-        requested:detect-in-directory . |
-          should-be $package-json-version
-      }
+      requested:detect-in-directory . |
+        should-be $package-json-version
     }
   }
 
   >> 'from a directory containing both .nvmrc and package.json field' {
-    >> 'should emit the version in .nvmrc' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
+    fs:with-temp-dir { |temp-dir|
+      cd $temp-dir
 
-        write-test-nvmrc
-        write-test-package-json
+      write-test-nvmrc
+      write-test-package-json
 
-        requested:detect-in-directory . |
-          should-be $nvmrc-version
-      }
+      requested:detect-in-directory . |
+        should-be $nvmrc-version
     }
   }
 
   >> 'from a directory not directly containing such information' {
     >> 'when an ancestor directory contains .nvmrc' {
-      >> 'should emit such version' {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
+      fs:with-temp-dir { |temp-dir|
+        cd $temp-dir
 
-          write-test-nvmrc
+        write-test-nvmrc
 
-          path:join A B C D |
-            fs:mkcd (all)
+        path:join A B C D |
+          fs:mkcd (all)
 
-          requested:detect-in-directory . |
-            should-be $nil
+        requested:detect-in-directory . |
+          should-be $nil
 
-          requested:detect-recursively . |
-            should-be $nvmrc-version
-        }
+        requested:detect-recursively . |
+          should-be $nvmrc-version
       }
     }
 
     >> 'when an ancestor directory contains only package.json field' {
-      >> 'should emit such version' {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
+      fs:with-temp-dir { |temp-dir|
+        cd $temp-dir
 
-          write-test-package-json
+        write-test-package-json
 
-          path:join A B C D |
-            fs:mkcd (all)
+        path:join A B C D |
+          fs:mkcd (all)
 
-          requested:detect-in-directory . |
-            should-be $nil
+        requested:detect-in-directory . |
+          should-be $nil
 
-          requested:detect-recursively . |
-            should-be $package-json-version
-        }
+        requested:detect-recursively . |
+          should-be $package-json-version
       }
     }
 
     >> 'when an ancestor directory contains both .nvmrc and package.json field' {
-      >> 'should emit the version in .nvmrc' {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
+      fs:with-temp-dir { |temp-dir|
+        cd $temp-dir
 
-          write-test-nvmrc
-          write-test-package-json
+        write-test-nvmrc
+        write-test-package-json
 
-          path:join A B C D |
-            fs:mkcd (all)
+        path:join A B C D |
+          fs:mkcd (all)
 
-          requested:detect-in-directory . |
-            should-be $nil
+        requested:detect-in-directory . |
+          should-be $nil
 
-          requested:detect-recursively . |
-            should-be $nvmrc-version
-        }
+        requested:detect-recursively . |
+          should-be $nvmrc-version
       }
     }
   }
