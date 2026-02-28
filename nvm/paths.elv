@@ -14,7 +14,7 @@ fn filter-out-nvm-downloaded {
 # Returns the PATH entry for the given NodeJS version.
 #
 fn get-entry-for { |node-version|
-  path:join $files:download-node-root $node-version bin
+  path:join $files:node-download-root $node-version bin
 }
 
 #

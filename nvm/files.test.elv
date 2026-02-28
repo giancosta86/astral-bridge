@@ -5,7 +5,7 @@ use ./files
   >> 'files' {
     >> 'testing for downloaded directory' {
       >> 'when it is actually a downloaded path' {
-        path:join $files:download-node-root v20.15.1 |
+        path:join $files:node-download-root v20.15.1 |
           files:is-not-downloaded |
           should-be $false
       }
