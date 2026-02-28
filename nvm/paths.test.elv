@@ -44,20 +44,22 @@ var nvm~ = $wrapper:nvm~
     }
   }
 
-  >> 'ensuring the `nvm current` is in path' {
-    fn use-and-ensure { |node-version|
-      nvm use $node-version
-
-      paths:ensure-current
-
-      var expected-path = (paths:get-entry-for-node $node-version)
-
-      put $paths |
-        should-contain $expected-path
-    }
-
-    use-and-ensure $shared:main-version
-
-    use-and-ensure $shared:alternative-version
+  >> 'ensuring the given NodeJS version is in path' {
+    all [
+      alpha
+      (paths:get-entry-for-node v1.0.0)
+      beta
+      gamma
+      (paths:get-entry-for-node v2.0.0)
+      delta
+    ] |
+      paths:ensure-node-version v7.0.0 |
+      should-emit [
+        (paths:get-entry-for-node v7.0.0)
+        alpha
+        beta
+        gamma
+        delta
+      ]
   }
 }

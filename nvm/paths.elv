@@ -1,7 +1,6 @@
 use path
 use github.com/giancosta86/ethereal/v1/lang
 use ./files
-use ./wrapper
 
 #
 # Emits all the paths passed via pipe - except the software downloaded via nvm.
@@ -19,22 +18,10 @@ fn get-entry-for-node { |node-version|
 }
 
 #
-# Sets the system PATH so as to include the `nvm current` binary - and no other nvm downloads.
+# Emits the path entry for the given NodeJS version, followed by any entry path passed via pipe **except** the ones in nvm's download directory.
 #
-fn ensure-current {
-  var entry-for-current = (
-    wrapper:nvm which current |
-      path:dir (all)
-  )
+fn ensure-node-version { |node-version|
+  get-entry-for-node $node-version
 
-  var paths-without-downloads = [(
-    all $paths |
-      filter-out-downloads
-    )]
-
-  set paths = [
-    $entry-for-current
-
-    $@paths-without-downloads
-  ]
+  filter-out-downloads
 }
