@@ -1,0 +1,11 @@
+{
+  "description": "Bridge between the Elvish shell and NodeJS",
+
+  "maintainers": ["Gianluca Costa <gianluca@gianlucacosta.info>"],
+
+  "homepage": "https://github.com/giancosta86/astral-bridge",
+
+  "dependencies": ["github.com/giancosta86/ethereal@v1"],
+
+  "devDependencies": ["github.com/giancosta86/velvet@v3"]
+}

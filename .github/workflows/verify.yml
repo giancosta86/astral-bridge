@@ -20,9 +20,32 @@ jobs:
       - shell: elvish {0}
         run: |
           use epm
+          use os
+          use path
 
-          epm:install github.com/giancosta86/velvet
+          epm:install github.com/giancosta86/epm-plus
 
-          use github.com/giancosta86/velvet
+          use github.com/giancosta86/epm-plus/epm-plus
+
+          epm-plus:patch-epm
+
+          epm:install
+
+          var link-path = (path:join $epm:managed-dir github.com giancosta86 astral-bridge v1)
+
+          os:mkdir-all (path:dir $link-path)
+
+          os:symlink '${{ github.workspace }}' $link-path
+
+      - shell: elvish {0}
+        run: |
+          use os
+          use github.com/giancosta86/astral-bridge/v1/tests/shared
+
+          shared:-pre-install-versions > $os:dev-null 2>&1
+
+      - shell: elvish {0}
+        run: |
+          use github.com/giancosta86/velvet/v3/velvet
 
           velvet:velvet &must-pass

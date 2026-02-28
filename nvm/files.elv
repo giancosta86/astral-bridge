@@ -1,0 +1,20 @@
+use path
+use str
+use github.com/giancosta86/ethereal/v1/lang
+
+var nvm-home = (path:join ~ .nvm)
+
+var bash-script = (path:join $nvm-home nvm.sh)
+
+var download-root = (path:join $nvm-home versions)
+
+var node-download-root = (path:join $download-root node)
+
+#
+# Returns $true if the given path is in the directory of nvm-downloaded software, $false otherwise.
+#
+fn is-downloaded { |@arguments|
+  var path = (lang:get-single-input $arguments)
+
+  str:has-prefix $path $download-root''$path:separator
+}
