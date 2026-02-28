@@ -20,6 +20,9 @@ var nvm~ = $wrapper:nvm~
 
         put $current-nvm-binary |
           should-contain $version
+
+        node --version |
+          should-be $version
       }
 
       use-and-check $shared:main-version

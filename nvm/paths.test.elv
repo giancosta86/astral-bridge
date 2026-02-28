@@ -44,7 +44,7 @@ var nvm~ = $wrapper:nvm~
     }
   }
 
-  >> 'ensuring the given NodeJS version is in path' {
+  >> 'ensuring the given NodeJS version is the only nvm path entry' {
     all [
       alpha
       (paths:get-entry-for-node v1.0.0)

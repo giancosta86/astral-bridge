@@ -18,7 +18,7 @@ fn get-entry-for-node { |node-version|
 }
 
 #
-# Emits the path entry for the given NodeJS version, followed by any entry path passed via pipe **except** the ones in nvm's download directory.
+# Emits the path entry for the given NodeJS version, followed by any path entry passed via pipe **except** the ones in nvm's download directory.
 #
 fn ensure-node-version { |node-version|
   get-entry-for-node $node-version

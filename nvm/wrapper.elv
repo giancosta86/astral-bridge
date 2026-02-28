@@ -1,5 +1,6 @@
 use str
 use ./files
+use ./paths
 use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
@@ -43,5 +44,10 @@ var nvm~ = (
       each $echo~
 
     set current-node-version = $bash-output-lines[-1]
+
+    set paths = [(
+      all $paths |
+        paths:ensure-node-version $current-node-version
+    )]
   }
 )

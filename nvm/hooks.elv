@@ -1,7 +1,6 @@
 use github.com/giancosta86/ethereal/v1/lang
 use ../version/requested
 use ./wrapper
-use ./paths
 
 fn -use-requested-node-version { |path|
   var requested-node-version = (requested:detect-recursively $path)
@@ -11,8 +10,6 @@ fn -use-requested-node-version { |path|
 
     if (not-eq $current-node-version $requested-node-version) {
       wrapper:nvm install --no-progress $requested-node-version
-
-      paths:ensure-current
     }
   }
 }
