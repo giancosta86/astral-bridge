@@ -5,14 +5,19 @@ use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
 #
-# Wraps the core Bash script for nvm - forwarding all of its arguments.
+# Wraps the core Bash script for nvm - forwarding all of its arguments and emitting its output.
 #
 var nvm~ = (
   var current-node-version = $nil
 
   var bash-script = { |@arguments|
+    var is-version-setting-command = (
+      lang:get-value $arguments 0 |
+        has-value [use install] (all)
+    )
+
     var should-restore-current-node-version = (
-      and $current-node-version (!=s $arguments[0] use)
+      and $current-node-version (not $is-version-setting-command)
     )
 
     var restore-current-node-version-command = (
@@ -34,7 +39,7 @@ var nvm~ = (
         'nvm current'
       ] |
         keep-if $seq:is-non-empty~ |
-        str:join '; ' |
+        str:join ' && ' |
         bash -c (all)
     )]
 
