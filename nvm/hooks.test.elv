@@ -6,7 +6,6 @@ use ./wrapper
 
 var nvm~ = $wrapper:nvm~
 
-
 fn expect-main-version {
   nvm current |
     should-be $shared:main-version
@@ -16,16 +15,19 @@ fn expect-main-version {
 
   put $paths |
     should-not-contain $shared:alternative-path-entry
+
+  node --version |
+    should-be $shared:main-version
 }
 
 >> 'nvm' {
   >> 'hooks' {
     >> 'after-chdir' {
       >> 'when version is requested via .nvmrc file in ancestor directory' {
+        nvm use $shared:alternative-version
+
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
-
-          nvm use $shared:alternative-version
 
           echo $shared:main-version > .nvmrc
 
@@ -42,14 +44,12 @@ fn expect-main-version {
       >> 'when version is requested via package.json in ancestor directory' {
         nvm use $shared:alternative-version
 
-        var main-version-base = $shared:main-version[1..]
-
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
           put [
             &engines=[
-              &node=$main-version-base
+              &node=$shared:main-version[1..]
             ]
           ] |
             to-json > package.json
