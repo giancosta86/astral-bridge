@@ -1,34 +1,24 @@
 use path
 use ../tests/shared
+use ./files
 use ./paths
 use ./wrapper
 
 var nvm~ = $wrapper:nvm~
 
-fn use-and-ensure { |node-version|
-  nvm use $node-version
-
-  paths:ensure-current-node
-
-  var expected-path = (paths:get-entry-for $node-version)
-
-  put $paths |
-    should-contain $expected-path
-}
-
 >> 'nvm' {
-  >> 'filtering downloaded NodeJS bin directories out of PATH' {
+  >> 'filtering nvm-downloaded software out of PATH' {
     all [
       alpha
-      (paths:get-entry-for v29.0.2)
+      (paths:get-entry-for-node v29.0.2)
       beta
-      (paths:get-entry-for v16.4)
+      (paths:get-entry-for-node v16.4)
       gamma
       delta
-      (paths:get-entry-for v7.4.3)
+      (paths:get-entry-for-node v7.4.3)
       epsilon
     ] |
-      paths:filter-out-nvm-downloaded |
+      paths:filter-out-downloads |
       should-emit [
         alpha
         beta
@@ -38,23 +28,34 @@ fn use-and-ensure { |node-version|
       ]
   }
 
-  >> 'retrieving the path of a NodeJS version' {
+  >> 'retrieving the path entry for a NodeJS version' {
     var test-version = v20.5.6
 
-    var test-path = (paths:get-entry-for $test-version)
+    var test-path = (paths:get-entry-for-node $test-version)
 
-    >> 'should be the expected path' {
+    >> 'should return the expected path' {
       put $test-path |
-        should-be (paths:get-entry-for $test-version)
+        should-be (path:join $files:node-download-root $test-version bin)
     }
 
-    >> 'should be an absolute path' {
+    >> 'should return an absolute path' {
       path:is-abs $test-path |
         should-be $true
     }
   }
 
-  >> 'ensuring current NodeJS is in path' {
+  >> 'ensuring the `nvm current` is in path' {
+    fn use-and-ensure { |node-version|
+      nvm use $node-version
+
+      paths:ensure-current
+
+      var expected-path = (paths:get-entry-for-node $node-version)
+
+      put $paths |
+        should-contain $expected-path
+    }
+
     use-and-ensure $shared:main-version
 
     use-and-ensure $shared:alternative-version

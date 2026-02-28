@@ -12,7 +12,7 @@ fn -use-requested-node-version { |path|
     if (not-eq $current-node-version $requested-node-version) {
       wrapper:nvm install --no-progress $requested-node-version
 
-      paths:ensure-current-node
+      paths:ensure-current
     }
   }
 }
