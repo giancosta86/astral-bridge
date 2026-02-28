@@ -6,6 +6,10 @@ var nvm~ = $wrapper:nvm~
 
 >> 'nvm' {
   >> 'wrapper command' {
+    >> 'should be invokable with no arguments' {
+      nvm
+    }
+
     >> 'switching NodeJS version' {
       fn use-and-check { |version|
         nvm use $version
