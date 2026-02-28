@@ -3,16 +3,16 @@ use ./files
 
 >> 'nvm' {
   >> 'files' {
-    >> 'testing for downloaded directory' {
-      >> 'when it is actually a downloaded path' {
+    >> 'testing for download directory' {
+      >> 'when a downloaded path is passed' {
         path:join $files:node-download-root v20.15.1 |
-          files:is-not-downloaded |
-          should-be $false
+          files:is-downloaded |
+          should-be $true
       }
 
-      >> 'when it is not a NodeJS path' {
-        files:is-not-downloaded / |
-          should-be $true
+      >> 'when a non-downloaded path is passed' {
+        files:is-downloaded / |
+          should-be $false
       }
     }
   }

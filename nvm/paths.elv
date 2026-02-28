@@ -1,4 +1,5 @@
 use path
+use github.com/giancosta86/ethereal/v1/lang
 use ./files
 use ./wrapper
 
@@ -7,7 +8,7 @@ use ./wrapper
 #
 fn filter-out-nvm-downloaded {
   all |
-    keep-if $files:is-not-downloaded~
+    keep-if (lang:negate $files:is-downloaded~)
 }
 
 #
