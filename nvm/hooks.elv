@@ -5,7 +5,11 @@ fn -use-requested-node-version { |path|
   var requested-node-version = (requested:detect-recursively $path)
 
   if $requested-node-version {
-    wrapper:nvm install --no-progress $requested-node-version
+    var current-node-version = (wrapper:get-current-node-version)
+
+    if (not-eq $current-node-version $requested-node-version) {
+      wrapper:nvm install --no-progress $requested-node-version
+    }
   }
 }
 

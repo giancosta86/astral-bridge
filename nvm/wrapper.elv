@@ -7,7 +7,7 @@ use github.com/giancosta86/ethereal/v1/seq
 #
 # Wraps the core Bash script for nvm - forwarding all of its arguments and emitting its output.
 #
-var nvm~ = (
+var nvm~ get-current-node-version~ = (
   var current-node-version = $nil
 
   var bash-script = { |@arguments|
@@ -58,5 +58,9 @@ var nvm~ = (
 
   set current-node-version = ($bash-script current)
 
-  put $bash-script
+  fn get-current-node-version {
+    put $current-node-version
+  }
+
+  put $bash-script $get-current-node-version~
 )
