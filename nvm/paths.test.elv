@@ -28,7 +28,7 @@ fn use-and-ensure { |node-version|
       (paths:get-entry-for v7.4.3)
       epsilon
     ] |
-      paths:filter-out-nvm-nodes |
+      paths:filter-out-nvm-downloaded |
       should-emit [
         alpha
         beta

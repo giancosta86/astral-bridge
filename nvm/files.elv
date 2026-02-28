@@ -6,16 +6,16 @@ var nvm-home = (path:join ~ .nvm)
 
 var bash-script = (path:join $nvm-home nvm.sh)
 
-var downloaded-root = (path:join $nvm-home versions)
+var download-root = (path:join $nvm-home versions)
 
-var downloaded-node-root = (path:join $downloaded-root node)
+var download-node-root = (path:join $download-root node)
 
 #
-# Returns $true if the given path is **not** in the directory of nvm-downloaded NodeJS versions, $false otherwise.
+# Returns $true if the given path is **not** in the directory of nvm-downloaded software, $false otherwise.
 #
-fn is-not-downloaded-node { |@arguments|
+fn is-not-downloaded { |@arguments|
   var path = (lang:get-single-input $arguments)
 
-  str:has-prefix $path $downloaded-node-root''$path:separator |
+  str:has-prefix $path $download-root''$path:separator |
     not (all)
 }

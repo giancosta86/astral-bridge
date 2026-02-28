@@ -3,15 +3,15 @@ use ./files
 
 >> 'nvm' {
   >> 'files' {
-    >> 'testing for downloaded NodeJS bin directory' {
-      >> 'when it is actually a NodeJS path' {
-        path:join $files:downloaded-node-root v20.15.1 |
-          files:is-not-downloaded-node |
+    >> 'testing for downloaded directory' {
+      >> 'when it is actually a downloaded path' {
+        path:join $files:download-node-root v20.15.1 |
+          files:is-not-downloaded |
           should-be $false
       }
 
       >> 'when it is not a NodeJS path' {
-        files:is-not-downloaded-node / |
+        files:is-not-downloaded / |
           should-be $true
       }
     }

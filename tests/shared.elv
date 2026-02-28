@@ -6,13 +6,13 @@ use ../nvm/wrapper
 var main-version = v21.7.3
 
 var main-path-entry = (
-  path:join $files:downloaded-node-root $main-version bin
+  path:join $files:download-node-root $main-version bin
 )
 
 var alternative-version = v16.14.2
 
 var alternative-path-entry = (
-  path:join $files:downloaded-node-root $alternative-version bin
+  path:join $files:download-node-root $alternative-version bin
 )
 
 fn -pre-install-versions {

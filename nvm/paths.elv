@@ -3,18 +3,18 @@ use ./files
 use ./wrapper
 
 #
-# Emits all the paths passed via pipe - except the NodeJS versions downloaded by nvm.
+# Emits all the paths passed via pipe - except the software downloaded by nvm.
 #
-fn filter-out-nvm-nodes {
+fn filter-out-nvm-downloaded {
   all |
-    keep-if $files:is-not-downloaded-node~
+    keep-if $files:is-not-downloaded~
 }
 
 #
 # Returns the PATH entry for the given NodeJS version.
 #
 fn get-entry-for { |node-version|
-  path:join $files:downloaded-node-root $node-version bin
+  path:join $files:download-node-root $node-version bin
 }
 
 #
@@ -26,14 +26,14 @@ fn ensure-current-node {
       path:dir (all)
   )
 
-  var paths-without-nvm-nodes = [(
+  var paths-without-nvm-downloaded = [(
     all $paths |
-      filter-out-nvm-nodes
+      filter-out-nvm-downloaded
   )]
 
   set paths = [
     $current-node-bin-directory
 
-    $@paths-without-nvm-nodes
+    $@paths-without-nvm-downloaded
   ]
 }
