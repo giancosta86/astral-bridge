@@ -10,7 +10,7 @@ use github.com/giancosta86/ethereal/v1/seq
 var nvm~ = (
   var current-node-version = $nil
 
-  put { |@arguments|
+  var bash-script = { |@arguments|
     var should-restore-current-node-version = (
       and $current-node-version (!=s $arguments[0] use)
     )
@@ -50,4 +50,8 @@ var nvm~ = (
         paths:ensure-node-version $current-node-version
     )]
   }
+
+  set current-node-version = ($bash-script current)
+
+  put $bash-script
 )
