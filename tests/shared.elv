@@ -16,8 +16,13 @@ var alternative-path-entry = (
 )
 
 fn -pre-install-versions {
-  wrapper:nvm install --no-progress $main-version
-  wrapper:nvm install --no-progress $alternative-version
+  if (not (os:is-dir $main-path-entry)) {
+    wrapper:nvm install --no-progress $main-version
+  }
+
+  if (not (os:is-dir $alternative-path-entry)) {
+    wrapper:nvm install --no-progress $alternative-version
+  }
 }
 
 -pre-install-versions > $os:dev-null
