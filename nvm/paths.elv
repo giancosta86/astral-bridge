@@ -6,8 +6,7 @@ use ./files
 # Emits all the paths passed via pipe - except the software downloaded via nvm.
 #
 fn filter-out-downloads {
-  all |
-    keep-if (lang:negate $files:is-downloaded~)
+  keep-if (lang:negate $files:is-downloaded~)
 }
 
 #

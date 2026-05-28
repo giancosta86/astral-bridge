@@ -19,8 +19,8 @@ var nvm~ = $wrapper:nvm~
 
         var current-nvm-binary = (nvm which current)
 
-        os:is-regular $current-nvm-binary |
-          should-be $true
+        put $current-nvm-binary |
+          should-be-regular
 
         put $current-nvm-binary |
           should-contain $version

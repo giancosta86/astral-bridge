@@ -63,7 +63,7 @@ fn write-test-package-json {
         write-test-nvmrc
 
         path:join A B C D |
-          fs:mkcd (all)
+          fs:mkcd
 
         requested:detect-in-directory . |
           should-be $nil
@@ -80,7 +80,7 @@ fn write-test-package-json {
         write-test-package-json
 
         path:join A B C D |
-          fs:mkcd (all)
+          fs:mkcd
 
         requested:detect-in-directory . |
           should-be $nil
@@ -98,7 +98,7 @@ fn write-test-package-json {
         write-test-package-json
 
         path:join A B C D |
-          fs:mkcd (all)
+          fs:mkcd
 
         requested:detect-in-directory . |
           should-be $nil
