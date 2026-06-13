@@ -29,7 +29,7 @@ var nvm~ = $wrapper:nvm~
           should-be $version
       }
 
-      use-and-check $shared:main-version
+      use-and-check $shared:main-node-version
 
       use-and-check $shared:alternative-version
     }

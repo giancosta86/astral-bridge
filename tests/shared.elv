@@ -3,10 +3,10 @@ use path
 use ../nvm/files
 use ../nvm/wrapper
 
-var main-version = v21.7.3
+var main-node-version = v21.7.3
 
-var main-path-entry = (
-  path:join $files:node-download-root $main-version bin
+var main-node-path-entry = (
+  path:join $files:node-download-root $main-node-version bin
 )
 
 var alternative-version = v16.14.2
@@ -16,8 +16,8 @@ var alternative-path-entry = (
 )
 
 fn -pre-install-versions {
-  if (not (os:is-dir $main-path-entry)) {
-    wrapper:nvm install --no-progress $main-version
+  if (not (os:is-dir $main-node-path-entry)) {
+    wrapper:nvm install --no-progress $main-node-version
   }
 
   if (not (os:is-dir $alternative-path-entry)) {
