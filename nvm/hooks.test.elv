@@ -8,16 +8,16 @@ var nvm~ = $wrapper:nvm~
 
 fn expect-main-version {
   nvm current |
-    should-be $shared:main-version
+    should-be $shared:main-node-version
 
   put $paths |
-    should-contain $shared:main-path-entry
+    should-contain $shared:main-node-path-entry
 
   put $paths |
     should-not-contain $shared:alternative-path-entry
 
   node --version |
-    should-be $shared:main-version
+    should-be $shared:main-node-version
 }
 
 >> 'nvm' {
@@ -29,7 +29,7 @@ fn expect-main-version {
         fs:with-temp-dir { |temp-dir|
           cd $temp-dir
 
-          echo $shared:main-version > .nvmrc
+          echo $shared:main-node-version > .nvmrc
 
           var nested-dir = (path:join alpha beta gamma)
 
@@ -49,7 +49,7 @@ fn expect-main-version {
 
           put [
             &engines=[
-              &node=$shared:main-version[1..]
+              &node=$shared:main-node-version[1..]
             ]
           ] |
             to-json > package.json
@@ -71,7 +71,7 @@ fn expect-main-version {
           fs:with-temp-dir { |temp-dir|
             cd $temp-dir
 
-            echo $shared:main-version > .nvmrc
+            echo $shared:main-node-version > .nvmrc
 
             var previous-after-chdir = $after-chdir
 
