@@ -2,7 +2,6 @@ use os
 use str
 use github.com/giancosta86/ethereal/v1/command
 use github.com/giancosta86/ethereal/v1/lang
-use github.com/giancosta86/ethereal/v1/map
 use github.com/giancosta86/ethereal/v1/seq
 
 fn -parse-from-package-json { |@arguments|
@@ -29,6 +28,25 @@ fn -parse-from-package-json { |@arguments|
   put $nil
 }
 
+var -detect-from-lockfile~ = (
+  var package-managers-by-lockfile = [
+    &'package-lock.json'=npm
+    &'yarn.lock'=yarn
+    &'pnpm-lock.yaml'=pnpm
+  ]
+
+  put {
+    keys $package-managers-by-lockfile | each { |lockfile|
+      if (os:is-regular $lockfile) {
+        put $package-managers-by-lockfile[$lockfile]
+        return
+      }
+    }
+
+    put $nil
+  }
+)
+
 #
 # Detects the package manager requested in the current directory, returning the command itself, or $nil if none could be detected.
 #
@@ -40,41 +58,13 @@ fn -parse-from-package-json { |@arguments|
 #
 # 3. Finally, if nothing else worked, $nil is returned.
 #
-var detect~ = (
-  var package-managers-by-lockfile = [
-    &package-lock.json=npm
-    &yarn.lock=yarn
-    &pnpm-lock.yaml=pnpm
-  ]
-
-  fn actual-detect {
-    var parsed-package-manager = (
-      from-json < package.json |
-        -parse-from-package-json
-    )
-
-    if $parsed-package-manager {
-      put $parsed-package-manager
-      return
+fn detect {
+  from-json < package.json |
+    -parse-from-package-json |
+    lang:otherwise {
+      -detect-from-lockfile
     }
-
-    var lockfile-found = $false
-
-    map:iterate $package-managers-by-lockfile { |lockfile package-manager|
-      if (os:is-regular $lockfile) {
-        put $package-manager
-        set lockfile-found = $true
-        break
-      }
-    }
-
-    if (not $lockfile-found) {
-      put $nil
-    }
-  }
-
-  put $actual-detect~
-)
+}
 
 #
 # Runs the given command using the best version for the requested package manager in the current directory:
