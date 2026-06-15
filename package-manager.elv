@@ -7,25 +7,14 @@ use github.com/giancosta86/ethereal/v1/seq
 fn -parse-from-package-json { |@arguments|
   var package-json = (lang:get-single-input $arguments)
 
-  var root-package-manager = (
-    seq:drill-down $package-json packageManager
-  )
-
-  if $root-package-manager {
-    str:split @ $root-package-manager | take 1
-    return
-  }
-
-  var dev-engines-package-manager-name = (
-    seq:drill-down $package-json devEngines packageManager name
-  )
-
-  if $dev-engines-package-manager-name {
-    put $dev-engines-package-manager-name
-    return
-  }
-
-  put $nil
+  seq:drill-down $package-json packageManager |
+    lang:map { |root-package-manager|
+      str:split @ $root-package-manager |
+        take 1
+    } |
+    lang:otherwise {
+      seq:drill-down $package-json devEngines packageManager name
+    }
 }
 
 var -detect-from-lockfile~ = (
