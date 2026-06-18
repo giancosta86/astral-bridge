@@ -1,9 +1,9 @@
 use github.com/giancosta86/ethereal/v1/command
 
 #
-# Ensures that corepack is installed and enabled - also supporting npm aliasing.
+# Ensures that corepack is installed and enabled.
 #
-fn setup { |&support-npm=$true|
+fn setup { |&support-npm=$false|
   if (has-external corepack) {
     echo 🌟 corepack already installed!
   } else {
@@ -25,13 +25,7 @@ fn setup { |&support-npm=$true|
   echo 🟢 corepack enabled!
 
   if $support-npm {
-    echo 📦 Enabling support for npm, too...
-
-    command:silence {
-      corepack enable npm
-    }
-
-    echo 🪅 npm now supported by corepack!
+    deprecate 'Support for npm was unstable; it has currently no effect and will be removed from the next major version'
   }
 
   echo 🚀 corepack ready!

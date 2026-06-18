@@ -47,7 +47,7 @@ nvm:register-after-chdir
 
 ### Setting up corepack
 
-The [corepack](./corepack.elv) module provides a `setup` function, ensuring that [corepack](https://www.npmjs.com/package/corepack) is installed and its links created; unless the `&support-npm` flag is set to `$false`, npm is supported, too. You don't need to call `setup` from within `rc.elv`; instead, you can invoke it just once, from within any Elvish terminal:
+The [corepack](./corepack.elv) module provides a `setup` function, ensuring that [corepack](https://www.npmjs.com/package/corepack) is installed and its links created via `corepack enable`. You don't need to call `setup` from within `rc.elv`; instead, you can invoke it just once, from within any Elvish terminal:
 
 > use github.com/giancosta86/astral-bridge/v1/corepack
 
