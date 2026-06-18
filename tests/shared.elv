@@ -3,7 +3,7 @@ use path
 use ../nvm/files
 use ../nvm/wrapper
 
-var main-node-version = v21.7.3
+var main-node-version = v26.2.0
 
 var main-node-path-entry = (
   path:join $files:node-download-root $main-node-version bin

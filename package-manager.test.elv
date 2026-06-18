@@ -1,7 +1,11 @@
 use ./corepack
+use ./nvm
 use ./package-manager
+use ./tests/shared
 
 >> 'Package manager' {
+  nvm:nvm install $shared:main-node-version
+
   corepack:setup &support-npm=$false
 
   >> 'parsing from package.json' {
