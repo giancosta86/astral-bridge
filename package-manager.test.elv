@@ -72,7 +72,7 @@ use ./package-manager
       }
     }
 
-    >> 'when a lockfile is present' {
+    >> 'when package.json has no related field, but a lockfile is present' {
       all [
         [package-lock.json npm]
         [yarn.lock yarn]
@@ -84,7 +84,27 @@ use ./package-manager
               cd $temp-dir
 
               put [&] | to-json > package.json
-              touch $lockfile
+              fs:touch $lockfile
+
+              package-manager:detect |
+                should-be $expected-package-manager
+            }
+          }
+        }
+    }
+
+    >> 'when only a lockfile is present' {
+      all [
+        [package-lock.json npm]
+        [yarn.lock yarn]
+        [pnpm-lock.yaml pnpm]
+      ] |
+        seq:spread { |lockfile expected-package-manager|
+          >> 'for '$lockfile {
+            fs:with-temp-dir { |temp-dir|
+              cd $temp-dir
+
+              fs:touch $lockfile
 
               package-manager:detect |
                 should-be $expected-package-manager
@@ -96,8 +116,6 @@ use ./package-manager
     >> 'when no clue is available' {
       fs:with-temp-dir { |temp-dir|
         cd $temp-dir
-
-        put [&] | to-json > package.json
 
         package-manager:detect |
           should-be $nil
