@@ -6,7 +6,7 @@ use ./tests/shared
 >> 'Package manager' {
   nvm:nvm install $shared:main-node-version
 
-  corepack:setup &support-npm=$false
+  corepack:setup
 
   >> 'parsing from package.json' {
     >> 'when the root packageManager field is declared' {
@@ -129,6 +129,7 @@ use ./tests/shared
 
   >> 'running' {
     all [
+      [npm 9.9.4]
       [yarn 3.2.3]
       [pnpm 11.4.0]
     ] | seq:spread { |name version|
