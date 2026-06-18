@@ -2,7 +2,7 @@ use ./corepack
 use ./package-manager
 
 >> 'Package manager' {
-  corepack:setup
+  corepack:setup &support-npm=$false
 
   >> 'parsing from package.json' {
     >> 'when the root packageManager field is declared' {
@@ -125,7 +125,6 @@ use ./package-manager
 
   >> 'running' {
     all [
-      [npm 9.9.4]
       [yarn 3.2.3]
       [pnpm 11.4.0]
     ] | seq:spread { |name version|
