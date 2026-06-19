@@ -41,15 +41,19 @@ var -detect-from-lockfile~ = (
 #
 # The detection algorithm works as follows:
 #
-# 1. If one of the supported fields (`packageManager` or `devEngines/packageManager/name`) is declared in package.json, return the package name.
+# 1. If package.json exists and one of the supported fields (`packageManager` or `devEngines/packageManager/name`) is declared, return the package name.
 #
 # 2. Otherwise, check the existence of one of the main lockfiles - returning the corresponding package manager command.
 #
 # 3. Finally, if nothing else worked, $nil is returned.
 #
 fn detect {
-  from-json < package.json |
-    -parse-from-package-json |
+  if (os:is-regular package.json) {
+    from-json < package.json |
+      -parse-from-package-json
+  } else {
+    put $nil
+  } |
     lang:otherwise {
       -detect-from-lockfile
     }

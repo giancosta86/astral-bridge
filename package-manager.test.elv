@@ -1,7 +1,11 @@
 use ./corepack
+use ./nvm
 use ./package-manager
+use ./tests/shared
 
 >> 'Package manager' {
+  nvm:nvm install $shared:main-node-version
+
   corepack:setup
 
   >> 'parsing from package.json' {
@@ -72,7 +76,7 @@ use ./package-manager
       }
     }
 
-    >> 'when a lockfile is present' {
+    >> 'when package.json has no related field, but a lockfile is present' {
       all [
         [package-lock.json npm]
         [yarn.lock yarn]
@@ -84,7 +88,27 @@ use ./package-manager
               cd $temp-dir
 
               put [&] | to-json > package.json
-              touch $lockfile
+              fs:touch $lockfile
+
+              package-manager:detect |
+                should-be $expected-package-manager
+            }
+          }
+        }
+    }
+
+    >> 'when only a lockfile is present' {
+      all [
+        [package-lock.json npm]
+        [yarn.lock yarn]
+        [pnpm-lock.yaml pnpm]
+      ] |
+        seq:spread { |lockfile expected-package-manager|
+          >> 'for '$lockfile {
+            fs:with-temp-dir { |temp-dir|
+              cd $temp-dir
+
+              fs:touch $lockfile
 
               package-manager:detect |
                 should-be $expected-package-manager
@@ -97,8 +121,6 @@ use ./package-manager
       fs:with-temp-dir { |temp-dir|
         cd $temp-dir
 
-        put [&] | to-json > package.json
-
         package-manager:detect |
           should-be $nil
       }
@@ -107,7 +129,6 @@ use ./package-manager
 
   >> 'running' {
     all [
-      [npm 9.9.4]
       [yarn 3.2.3]
       [pnpm 11.4.0]
     ] | seq:spread { |name version|
