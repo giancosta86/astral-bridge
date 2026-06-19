@@ -128,22 +128,33 @@ use ./tests/shared
   }
 
   >> 'running' {
-    all [
-      [yarn 3.2.3]
-      [pnpm 11.4.0]
-    ] | seq:spread { |name version|
-      >> 'for '$name {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
+    >> 'when the package manager is declared in package.json' {
+      all [
+        [yarn 3.2.3]
+        [pnpm 11.4.0]
+      ] | seq:spread { |name version|
+        >> 'for '$name {
+          fs:with-temp-dir { |temp-dir|
+            cd $temp-dir
 
-          put [
-            &packageManager=$name'@'$version
-          ] |
-            to-json > package.json
+            put [
+              &packageManager=$name'@'$version
+            ] |
+              to-json > package.json
 
-          package-manager:exec --version |
-            should-match-regex '\b'$version'\b'
+            package-manager:exec --version |
+              should-match-regex '\b'$version'\b'
+          }
         }
+      }
+    }
+
+    >> 'when package.json is missing' {
+      fs:with-temp-dir { |temp-dir|
+        cd $temp-dir
+
+        package-manager:exec --version |
+          should-be $shared:main-npm-version
       }
     }
   }
