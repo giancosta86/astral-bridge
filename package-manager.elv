@@ -62,23 +62,34 @@ fn detect {
 #
 # Runs the given command using the best version for the requested package manager in the current directory:
 #
-# 1. If `&ensure-installed` is enabled, `corepack` is available as a command and package.json exists, execute `corepack install`, to ensure the requested package manager version is available.
+# 1. Use the `detect` function to detect the package manager for the project, defaulting to `npm`.
 #
-# 2. Use the `detect` function to detect the command of the package manager, defaulting to `npm`
+# 2. If the detected package manager is `npm`, just run it, forwarding the arguments; otherwise:
 #
-# 3. Run the package manager, forwarding all the arguments.
+#    1. If these conditions are all met:
+#
+#       * `&ensure-installed` is enabled
+#
+#       * `corepack` is available as a command
+#
+#       * **package.json** exists in the current directory
+#
+#       then execute `corepack install`, to ensure the requested package manager version is available.
+#
+#    2. Run the requested package manager, forwarding all the arguments.
 #
 fn exec { |&ensure-installed=$true @arguments|
-  if (and $ensure-installed (has-external corepack) (os:is-regular package.json)) {
-    command:silence {
-      corepack install
+  var detected-package-manager = (detect)
+
+  if $detected-package-manager {
+    if (and $ensure-installed (has-external corepack) (os:is-regular package.json)) {
+      command:silence {
+        corepack install
+      }
     }
+
+    (external $detected-package-manager) $@arguments
+  } else {
+    npm $@arguments
   }
-
-  var command = (
-    detect |
-      coalesce (all) npm
-  )
-
-  (external $command) $@arguments
 }
