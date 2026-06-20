@@ -64,7 +64,7 @@ fn detect {
 #
 # 1. Use the `detect` function to detect the package manager for the project, defaulting to `npm`.
 #
-# 2. If the detected package manager is `npm`, just run it, forwarding the arguments; otherwise:
+# 2. If the detected package manager is `npm` (explicitly or by fallback), just run it, forwarding the arguments; otherwise:
 #
 #    1. If these conditions are all met:
 #
@@ -82,7 +82,7 @@ fn exec { |&ensure-installed=$true @arguments|
   var detected-package-manager = (detect)
 
   if $detected-package-manager {
-    if (and $ensure-installed (has-external corepack) (os:is-regular package.json)) {
+    if (and $ensure-installed (has-external corepack) (os:is-regular package.json) (not-eq $detected-package-manager npm)) {
       command:silence {
         corepack install
       }
