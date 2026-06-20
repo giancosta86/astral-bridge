@@ -157,5 +157,18 @@ use ./tests/shared
           should-be $shared:main-npm-version
       }
     }
+
+    >> 'when package.json and npm lockfile are present' {
+      fs:with-temp-dir { |temp-dir|
+        cd $temp-dir
+
+        put [&] | to-json > package.json
+
+        fs:touch package-lock.json
+
+        package-manager:exec --version |
+          should-be $shared:main-npm-version
+      }
+    }
   }
 }
