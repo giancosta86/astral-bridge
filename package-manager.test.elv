@@ -171,4 +171,87 @@ use ./tests/shared
       }
     }
   }
+
+  >> 'running package script' {
+    fn run-suite { |&optional=$false|
+      var assertion-message-extractor = (
+        if $optional {
+          put $capture~
+        } else {
+          put $fails~
+        }
+      )
+
+      >> 'when package.json does not exist' {
+        fs:with-temp-dir { |temp-dir|
+          cd $temp-dir
+
+          $assertion-message-extractor {
+            package-manager:run-script &optional=$optional start
+          } |
+            should-be '💭 Cannot find package.json - will not run the ''start'' script...'
+        }
+      }
+
+      >> 'when package.json has no scripts section' {
+        fs:with-temp-dir { |temp-dir|
+          cd $temp-dir
+
+          put [&] |
+            to-json > package.json
+
+          $assertion-message-extractor {
+            package-manager:run-script &optional=$optional start
+          } |
+            should-be '💭 Cannot find the ''start'' script in package.json...'
+        }
+      }
+
+      >> 'when package.json has scripts, but not the requested one' {
+        fs:with-temp-dir { |temp-dir|
+          fs:with-temp-dir { |temp-dir|
+            cd $temp-dir
+
+            put [
+              &scripts=[
+                &dodo='echo Hello'
+              ]
+            ] |
+              to-json > package.json
+
+            $assertion-message-extractor {
+              package-manager:run-script &optional=$optional start
+            } |
+              should-be '💭 Cannot find the ''start'' script in package.json...'
+          }
+        }
+      }
+
+      >> 'when package.json has the requested script' {
+        fs:with-temp-dir { |temp-dir|
+          cd $temp-dir
+
+          put [
+            &scripts=[
+              &start='echo Hello > test.txt'
+            ]
+          ] |
+            to-json > package.json
+
+          package-manager:run-script &optional=$optional start
+
+          slurp < test.txt |
+            should-be "Hello\n"
+        }
+      }
+    }
+
+    >> 'when required' {
+      run-suite
+    }
+
+    >> 'when optional' {
+      run-suite &optional
+    }
+  }
 }
