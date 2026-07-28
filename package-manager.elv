@@ -93,3 +93,35 @@ fn exec { |&ensure-installed=$true @arguments|
     npm $@arguments
   }
 }
+
+#
+# If package.json exists and contains the required script in its "scripts" section, runs it.
+#
+fn run-script { |script &optional=$false|
+  var notify-error~ = { |message|
+    if $optional {
+      echo $message
+      return
+    } else {
+      fail $message
+    }
+  }
+
+  if (not (os:is-regular package.json)) {
+    notify-error '💭 Cannot find package.json - will not run the '''$script''' script...'
+  }
+
+  var package-json = (from-json < package.json)
+
+  if (seq:drill-down $package-json scripts $script) {
+    echo 💫 Now running the "'"$script"'" script from package.json...
+
+    command:silence {
+      exec run $script
+    }
+
+    echo ✅ "'"$script"'" script executed!
+  } else {
+    notify-error '💭 Cannot find the '''$script''' script in package.json...'
+  }
+}
