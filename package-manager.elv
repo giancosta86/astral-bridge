@@ -116,9 +116,7 @@ fn run-script { |script &optional=$false|
   if (seq:drill-down $package-json scripts $script) {
     echo 💫 Now running the "'"$script"'" script from package.json...
 
-    command:silence {
-      exec run $script
-    }
+    exec run $script
 
     echo ✅ "'"$script"'" script executed!
   } else {
