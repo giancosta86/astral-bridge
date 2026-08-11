@@ -26,4 +26,8 @@ fn -pre-install-versions {
   }
 }
 
--pre-install-versions > $os:dev-null
+fn -init {
+  -pre-install-versions > $os:dev-null 2>&1
+}
+
+-init

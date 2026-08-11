@@ -11,41 +11,8 @@ jobs:
   verify:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: elves/setup-elvish@v1
-        with:
-          elvish-version: 0.21.0
+      - uses: giancosta86/gauntlet/actions/setup-elvish-context@v1
 
-      - shell: elvish {0}
-        run: |
-          use epm
-          use os
-          use path
-
-          epm:install github.com/giancosta86/epm-plus
-
-          use github.com/giancosta86/epm-plus/epm-plus
-
-          epm-plus:patch-epm
-
-          epm:install
-
-          var link-path = (path:join $epm:managed-dir github.com giancosta86 astral-bridge v1)
-
-          os:mkdir-all (path:dir $link-path)
-
-          os:symlink '${{ github.workspace }}' $link-path
-
-      - shell: elvish {0}
-        run: |
-          use os
-          use github.com/giancosta86/astral-bridge/v1/tests/shared
-
-          shared:-pre-install-versions > $os:dev-null 2>&1
-
-      - shell: elvish {0}
-        run: |
-          use github.com/giancosta86/velvet/v4/velvet
-
-          velvet:velvet &flawless
+      - uses: giancosta86/aurora-github/actions/verify-elvish-package@v11
