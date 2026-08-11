@@ -1,16 +1,16 @@
-name: Verify
+name: Publish
 
 on:
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [closed]
     branches: main
 
   workflow_dispatch:
 
 jobs:
-  verify:
+  publish:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
 
-      - uses: giancosta86/aurora-github/actions/verify-elvish-package@v11
+      - uses: giancosta86/aurora-github/actions/tag-and-release@v11
