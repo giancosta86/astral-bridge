@@ -4,7 +4,7 @@ use github.com/giancosta86/ethereal/v1/command
 use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
-fn -parse-from-package-json { |@arguments|
+fn -detect-from-package-json { |@arguments|
   var package-json = (lang:get-single-input $arguments)
 
   seq:drill-down $package-json packageManager |
@@ -19,7 +19,6 @@ fn -parse-from-package-json { |@arguments|
 
 var -detect-from-lockfile~ = (
   var package-managers-by-lockfile = [
-    &'package-lock.json'=npm
     &'yarn.lock'=yarn
     &'pnpm-lock.yaml'=pnpm
   ]
@@ -37,7 +36,7 @@ var -detect-from-lockfile~ = (
 )
 
 #
-# Detects the package manager requested in the current directory, returning the command itself, or $nil if none could be detected.
+# Detects the package manager requested in the current directory, returning the command itself, or "npm" if none could be detected.
 #
 # The detection algorithm works as follows:
 #
@@ -45,46 +44,55 @@ var -detect-from-lockfile~ = (
 #
 # 2. Otherwise, check the existence of one of the main lockfiles - returning the corresponding package manager command.
 #
-# 3. Finally, if nothing else worked, $nil is returned.
+# 3. Finally, if nothing else worked, the default "npm" is returned.
 #
 fn detect {
   if (os:is-regular package.json) {
     from-json < package.json |
-      -parse-from-package-json
+      -detect-from-package-json
   } else {
     put $nil
   } |
-    lang:otherwise {
-      -detect-from-lockfile
-    }
+    lang:otherwise $-detect-from-lockfile~ |
+    coalesce (all) npm
 }
 
 #
 # Runs the given command using the best version for the requested package manager in the current directory:
 #
-# 1. Use the `detect` function to detect the package manager for the project, defaulting to `npm`.
+# 1. Use the `detect` function to detect the package manager for the project.
 #
-# 2. If the detected package manager is `npm` (explicitly or by fallback), just run it, forwarding the arguments; otherwise:
+# 2. If `&ensure-installed` is enabled:
 #
-#    1. If these conditions are all met:
+#    1. Verify these conditions are all met:
 #
-#       * `&ensure-installed` is enabled
+#       * the detected package manager is `npm`
 #
 #       * `corepack` is available as a command
 #
-#       * **package.json** exists in the current directory
+#       * the package manager in package.json, within the current directory, is the detected one
 #
-#       then execute `corepack install`, to ensure the requested package manager version is available.
+#       If any of the above conditions is not met, don't proceed to the following steps.
 #
-#    2. Run the requested package manager, forwarding all the arguments.
+#    2. Execute `corepack install`, to ensure the requested package manager version is available
+#
+#    3. Run the requested package manager, forwarding all the arguments.
 #
 fn exec { |&ensure-installed=$true @arguments|
   var detected-package-manager = (detect)
 
+  var not-using-npm = (
+    not-eq $detected-package-manager npm
+  )
+
   if $detected-package-manager {
-    if (and $ensure-installed (has-external corepack) (os:is-regular package.json) (not-eq $detected-package-manager npm)) {
-      command:silence {
-        corepack install
+    if (and $ensure-installed (has-external corepack) $not-using-npm) {
+      var detected-from-package-json = (-detect-from-package-json)
+
+      if (eq $detected-from-package-json $detected-package-manager) {
+        command:silence {
+          corepack install
+        }
       }
     }
 

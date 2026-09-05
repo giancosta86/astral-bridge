@@ -1,17 +1,17 @@
 use ./corepack
 use ./nvm
 use ./package-manager
-use ./tests/shared
+
 
 >> 'Package manager' {
   nvm:nvm install $shared:main-node-version
 
   corepack:setup
 
-  >> 'parsing from package.json' {
+  >> 'detecting from package.json' {
     >> 'when the root packageManager field is declared' {
       >> 'with name, version and checksum' {
-        package-manager:-parse-from-package-json [
+        package-manager:-detect-from-package-json [
           &packageManager=yarn@3.2.3+sha224.953c8233f7a92884eee2de69a1b92d1f2ec1655e66d08071ba9a02fa
         ] |
           should-be yarn
@@ -21,7 +21,7 @@ use ./tests/shared
         put [
           &packageManager=yarn@3.2.3
         ] |
-          package-manager:-parse-from-package-json |
+          package-manager:-detect-from-package-json |
           should-be yarn
       }
 
@@ -29,13 +29,13 @@ use ./tests/shared
         put [
           &packageManager=yarn
         ] |
-          package-manager:-parse-from-package-json |
+          package-manager:-detect-from-package-json |
           should-be yarn
       }
     }
 
     >> 'when the devEngines/packageManager field is declared' {
-      package-manager:-parse-from-package-json [
+      package-manager:-detect-from-package-json [
         &devEngines=[
           &packageManager=[
             &name=yarn
@@ -56,16 +56,14 @@ use ./tests/shared
           ]
         ]
       ] |
-        package-manager:-parse-from-package-json |
+        package-manager:-detect-from-package-json |
         should-be pnpm
     }
   }
 
   >> 'detection' {
     >> 'when declared in package.json' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
-
+      fs:within-temp-dir {
         put [
           &packageManager=yarn@3.2.3
         ] |
@@ -84,9 +82,7 @@ use ./tests/shared
       ] |
         seq:spread { |lockfile expected-package-manager|
           >> 'for '$lockfile {
-            fs:with-temp-dir { |temp-dir|
-              cd $temp-dir
-
+            fs:within-temp-dir {
               put [&] | to-json > package.json
               fs:touch $lockfile
 
@@ -105,9 +101,7 @@ use ./tests/shared
       ] |
         seq:spread { |lockfile expected-package-manager|
           >> 'for '$lockfile {
-            fs:with-temp-dir { |temp-dir|
-              cd $temp-dir
-
+            fs:within-temp-dir {
               fs:touch $lockfile
 
               package-manager:detect |
@@ -118,9 +112,7 @@ use ./tests/shared
     }
 
     >> 'when no clue is available' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
-
+      fs:within-temp-dir {
         package-manager:detect |
           should-be $nil
       }
@@ -134,9 +126,7 @@ use ./tests/shared
         [pnpm 11.4.0]
       ] | seq:spread { |name version|
         >> 'for '$name {
-          fs:with-temp-dir { |temp-dir|
-            cd $temp-dir
-
+          fs:within-temp-dir {
             put [
               &packageManager=$name'@'$version
             ] |
@@ -150,18 +140,14 @@ use ./tests/shared
     }
 
     >> 'when package.json is missing' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
-
+      fs:within-temp-dir {
         package-manager:exec --version |
           should-be $shared:main-npm-version
       }
     }
 
     >> 'when package.json and npm lockfile are present' {
-      fs:with-temp-dir { |temp-dir|
-        cd $temp-dir
-
+      fs:within-temp-dir {
         put [&] | to-json > package.json
 
         fs:touch package-lock.json
@@ -183,9 +169,7 @@ use ./tests/shared
       )
 
       >> 'when package.json does not exist' {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
-
+        fs:within-temp-dir {
           $assertion-message-extractor {
             package-manager:run-script &optional=$optional start
           } |
@@ -194,9 +178,7 @@ use ./tests/shared
       }
 
       >> 'when package.json has no scripts section' {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
-
+        fs:within-temp-dir {
           put [&] |
             to-json > package.json
 
@@ -208,29 +190,23 @@ use ./tests/shared
       }
 
       >> 'when package.json has scripts, but not the requested one' {
-        fs:with-temp-dir { |temp-dir|
-          fs:with-temp-dir { |temp-dir|
-            cd $temp-dir
+        fs:within-temp-dir {
+          put [
+            &scripts=[
+              &dodo='echo Hello'
+            ]
+          ] |
+            to-json > package.json
 
-            put [
-              &scripts=[
-                &dodo='echo Hello'
-              ]
-            ] |
-              to-json > package.json
-
-            $assertion-message-extractor {
-              package-manager:run-script &optional=$optional start
-            } |
-              should-be '💭 Cannot find the ''start'' script in package.json...'
-          }
+          $assertion-message-extractor {
+            package-manager:run-script &optional=$optional start
+          } |
+            should-be '💭 Cannot find the ''start'' script in package.json...'
         }
       }
 
       >> 'when package.json has the requested script' {
-        fs:with-temp-dir { |temp-dir|
-          cd $temp-dir
-
+        fs:within-temp-dir {
           put [
             &scripts=[
               &start='echo Hello > test.txt'
