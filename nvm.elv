@@ -1,6 +1,6 @@
-use ./nvm/hooks
-use ./nvm/wrapper
+use ./-nvm/hooks
+use ./-nvm/wrapper
 
 var nvm~ = $wrapper:nvm~
 
-var register-after-chdir~ = $hooks:register-after-chdir~
+var register-chdir-hooks~ = $hooks:register-chdir-hooks~
