@@ -40,26 +40,18 @@ var nvm~ = $nvm:nvm~
 Optionally, you can add these lines to fully support a _per-directory NodeJS version_ via **nvm**:
 
 ```elvish
-nvm:register-after-chdir
+nvm:register-chdir-hooks
 ```
 
 ## Package managers
-
-### Setting up corepack
-
-The [corepack](./corepack.elv) module provides a `setup` function, ensuring that [corepack](https://www.npmjs.com/package/corepack) is installed and its links created via `corepack enable`. You don't need to call `setup` from within `rc.elv`; instead, you can invoke it just once, from within any Elvish terminal:
-
-> use github.com/giancosta86/astral-bridge/v1/corepack
-
-> corepack:setup
 
 ### Detection & transparent commands
 
 The [package-manager](./package-manager.elv) module includes:
 
-- a `detect` function, returning the name of the package manager explicitly requested for the current directory - based on **package.json** and lockfiles - or `$nil` if none could be detected.
+- a `detect` function, returning the name of the package manager explicitly requested for the current directory - based on **package.json** and lockfiles - or a default **npm**.
 
-- an `exec` function, using the above-mentioned `detect` to find out the package manager for the current directory - here defaulting to `npm` - then invoking it and forwarding all the arguments; additionally, by default, if the `corepack` command is available, it will be used to install the required package manager before running the command.
+- an `exec` function, using the above-mentioned `detect` to find out the package manager for the current directory - then invoking it and forwarding all the arguments; additionally, by default, if the `corepack` command is available, it will be used to install the required package manager before running the command.
 
   In particular, these lines can be added to the `rc.elv` configuration file as follows:
 
@@ -72,13 +64,7 @@ The [package-manager](./package-manager.elv) module includes:
 
 ### Detecting the requested NodeJS version
 
-The `version/requested` module provides utilities for detecting the _requested NodeJS version_; it is mostly used by the **nvm** wrapper, but feel free to consult the [module](version/requested.elv) for details about its functions.
-
-## FAQ
-
-- **What about the color palette in nvm?**
-
-  Most unfortunately, the current implementation _filters out the terminal colors_ emitted by nvm: it is at present a _fundamental constraint_ to enable the very integration into an Elvish context.
+The `nodejs/requested-version` module provides utilities for detecting the _requested NodeJS version_; it is mostly used by the **nvm** wrapper, but feel free to consult the [module](version/requested.elv) for details about its functions.
 
 ## Credits
 
