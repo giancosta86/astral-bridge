@@ -38,7 +38,7 @@ fn -detect-from-package-json { |directory|
     return
   }
 
-  var matches = [(re:find '\d+(?:\.\d+){0,4}' $version-field)]
+  var matches = [(re:find '\d+(?:\.\d+){0,3}' $version-field)]
 
   if (seq:is-non-empty $matches) {
     put 'v'$matches[0][text]
