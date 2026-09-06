@@ -4,8 +4,26 @@ use github.com/giancosta86/ethereal/v1/command
 use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
-fn -detect-from-package-json { |@arguments|
-  var package-json = (lang:get-single-input $arguments)
+#
+# Emits the name of the package manager described in package.json,
+# in any of the fields supported by corepack:
+#
+# 1. packageManager
+#
+# 2. devEngines/packageManager
+#
+# If package.json is missing or such fields can't be found,
+# emits $nil instead.
+#
+fn detect-from-package-json {
+  if (not (os:is-regular package.json)) {
+    put $nil
+    return
+  }
+
+  var package-json = (
+    from-json < package.json
+  )
 
   seq:drill-down $package-json packageManager |
     lang:map { |root-package-manager|
@@ -17,10 +35,14 @@ fn -detect-from-package-json { |@arguments|
     }
 }
 
-var -detect-from-lockfile~ = (
+#
+# Emits the package manager inferred from the existing lockfile - or $nil if no supported lockfile was found.
+#
+var detect-from-lockfile~ = (
   var package-managers-by-lockfile = [
-    &'yarn.lock'=yarn
     &'pnpm-lock.yaml'=pnpm
+    &'yarn.lock'=yarn
+    &'package-lock.json'=npm
   ]
 
   put {
@@ -40,20 +62,15 @@ var -detect-from-lockfile~ = (
 #
 # The detection algorithm works as follows:
 #
-# 1. If package.json exists and one of the supported fields (`packageManager` or `devEngines/packageManager/name`) is declared, return the package name.
+# 1. Run `detect-from-package-json` - emitting a non-$nil result
 #
-# 2. Otherwise, check the existence of one of the main lockfiles - returning the corresponding package manager command.
+# 2. Run `detect-from-lockfile` - emitting a non-$nil result
 #
 # 3. Finally, if nothing else worked, the default "npm" is returned.
 #
 fn detect {
-  if (os:is-regular package.json) {
-    from-json < package.json |
-      -detect-from-package-json
-  } else {
-    put $nil
-  } |
-    lang:otherwise $-detect-from-lockfile~ |
+  detect-from-package-json |
+    lang:otherwise $detect-from-lockfile~ |
     coalesce (all) npm
 }
 

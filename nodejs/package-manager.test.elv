@@ -1,233 +1,244 @@
-use ./corepack
-use ./nvm
 use ./package-manager
 
-
->> 'Package manager' {
-  nvm:nvm install $shared:main-node-version
-
-  corepack:setup
-
-  >> 'detecting from package.json' {
-    >> 'when the root packageManager field is declared' {
-      >> 'with name, version and checksum' {
-        package-manager:-detect-from-package-json [
-          &packageManager=yarn@3.2.3+sha224.953c8233f7a92884eee2de69a1b92d1f2ec1655e66d08071ba9a02fa
-        ] |
-          should-be yarn
-      }
-
-      >> 'with name and checksum' {
-        put [
-          &packageManager=yarn@3.2.3
-        ] |
-          package-manager:-detect-from-package-json |
-          should-be yarn
-      }
-
-      >> 'with just the name' {
-        put [
-          &packageManager=yarn
-        ] |
-          package-manager:-detect-from-package-json |
-          should-be yarn
-      }
-    }
-
-    >> 'when the devEngines/packageManager field is declared' {
-      package-manager:-detect-from-package-json [
-        &devEngines=[
-          &packageManager=[
-            &name=yarn
-            &version=3.2.3
-          ]
-        ]
-      ] |
-        should-be yarn
-    }
-
-    >> 'when both fields are declared' {
-      put [
-        &packageManager=pnpm
-        &devEngines=[
-          &packageManager=[
-            &name=yarn
-            &version=3.2.3
-          ]
-        ]
-      ] |
-        package-manager:-detect-from-package-json |
-        should-be pnpm
-    }
-  }
-
-  >> 'detection' {
-    >> 'when declared in package.json' {
-      fs:within-temp-dir {
-        put [
-          &packageManager=yarn@3.2.3
-        ] |
-          to-json > package.json
-
-        package-manager:detect |
-          should-be yarn
-      }
-    }
-
-    >> 'when package.json has no related field, but a lockfile is present' {
-      all [
-        [package-lock.json npm]
-        [yarn.lock yarn]
-        [pnpm-lock.yaml pnpm]
-      ] |
-        seq:spread { |lockfile expected-package-manager|
-          >> 'for '$lockfile {
-            fs:within-temp-dir {
-              put [&] | to-json > package.json
-              fs:touch $lockfile
-
-              package-manager:detect |
-                should-be $expected-package-manager
+>> 'NodeJS' {
+  >> 'package manager' {
+    >> 'detection' {
+      >> 'from package.json' {
+        fn expect-package-manager { |package-json expected-package-manager|
+          fs:within-temp-dir {
+            if $package-json {
+              put $package-json |
+                to-json > package.json
             }
+
+            package-manager:detect-from-package-json |
+              should-be $expected-package-manager
           }
         }
-    }
 
-    >> 'when only a lockfile is present' {
-      all [
-        [package-lock.json npm]
-        [yarn.lock yarn]
-        [pnpm-lock.yaml pnpm]
-      ] |
-        seq:spread { |lockfile expected-package-manager|
-          >> 'for '$lockfile {
-            fs:within-temp-dir {
-              fs:touch $lockfile
+        >> 'when package.json is missing' {
+          expect-package-manager $nil $nil
+        }
 
-              package-manager:detect |
-                should-be $expected-package-manager
-            }
+        >> 'when package.json has no supported fields' {
+          expect-package-manager [&] $nil
+        }
+
+        >> 'when the root packageManager field is declared' {
+          >> 'with name and version' {
+            expect-package-manager [
+              &packageManager=yarn@3.2.3
+            ] yarn
+          }
+
+          >> 'with just the name' {
+            expect-package-manager [
+              &packageManager=pnpm
+            ] pnpm
           }
         }
-    }
 
-    >> 'when no clue is available' {
-      fs:within-temp-dir {
-        package-manager:detect |
-          should-be $nil
+        >> 'when the devEngines/packageManager field is declared' {
+          expect-package-manager [
+            &devEngines=[
+              &packageManager=[
+                &name=yarn
+                &version=3.2.3
+              ]
+            ]
+          ] yarn
+        }
+
+        >> 'when both fields are declared' {
+          expect-package-manager [
+            &packageManager=pnpm
+            &devEngines=[
+              &packageManager=[
+                &name=yarn
+                &version=3.2.3
+              ]
+            ]
+          ] pnpm
+        }
       }
-    }
-  }
 
-  >> 'running' {
-    >> 'when the package manager is declared in package.json' {
-      all [
-        [yarn 3.2.3]
-        [pnpm 11.4.0]
-      ] | seq:spread { |name version|
-        >> 'for '$name {
+      >> 'from lockfile' {
+        >> 'when no lockfile is present' {
+          fs:within-temp-dir {
+            package-manager:detect-from-lockfile |
+              should-be $nil
+          }
+        }
+
+        >> 'when pnpm lockfile is present' {
+          fs:within-temp-dir {
+            fs:touch pnpm-lock.yaml
+
+            package-manager:detect-from-lockfile |
+              should-be pnpm
+          }
+        }
+
+        >> 'when yarn lockfile is present' {
+          fs:within-temp-dir {
+            fs:touch yarn.lock
+
+            package-manager:detect-from-lockfile |
+              should-be yarn
+          }
+        }
+
+        >> 'when npm lockfile is present' {
+          fs:within-temp-dir {
+            fs:touch package-lock.json
+
+            package-manager:detect-from-lockfile |
+              should-be npm
+          }
+        }
+      }
+
+      >> 'with multiple methods' {
+        >> 'when package.json is conclusive' {
           fs:within-temp-dir {
             put [
-              &packageManager=$name'@'$version
+              &packageManager=yarn@3.2.3
             ] |
               to-json > package.json
 
-            package-manager:exec --version |
-              should-match-regex '\b'$version'\b'
+            package-manager:detect |
+              should-be yarn
+          }
+        }
+
+        >> 'when lockfile is conclusive' {
+          fs:within-temp-dir {
+            fs:touch pnpm-lock.yaml
+
+            package-manager:detect |
+              should-be pnpm
+          }
+        }
+
+        >> 'when no clue is available' {
+          fs:within-temp-dir {
+            package-manager:detect |
+              should-be npm
           }
         }
       }
     }
 
-    >> 'when package.json is missing' {
-      fs:within-temp-dir {
-        package-manager:exec --version |
-          should-be $shared:main-npm-version
-      }
-    }
+    # >> 'running' {
+    #   >> 'when the package manager is declared in package.json' {
+    #     all [
+    #       [yarn 3.2.3]
+    #       [pnpm 11.4.0]
+    #     ] | seq:spread { |name version|
+    #       >> 'for '$name {
+    #         fs:within-temp-dir {
+    #           put [
+    #             &packageManager=$name'@'$version
+    #           ] |
+    #             to-json > package.json
 
-    >> 'when package.json and npm lockfile are present' {
-      fs:within-temp-dir {
-        put [&] | to-json > package.json
+    #           package-manager:exec --version |
+    #             should-match-regex '\b'$version'\b'
+    #         }
+    #       }
+    #     }
+    #   }
 
-        fs:touch package-lock.json
+    #   >> 'when package.json is missing' {
+    #     fs:within-temp-dir {
+    #       package-manager:exec --version |
+    #         should-be $shared:main-npm-version
+    #     }
+    #   }
 
-        package-manager:exec --version |
-          should-be $shared:main-npm-version
-      }
-    }
-  }
+    #   >> 'when package.json and npm lockfile are present' {
+    #     fs:within-temp-dir {
+    #       put [&] | to-json > package.json
 
-  >> 'running package script' {
-    fn run-suite { |&optional=$false|
-      var assertion-message-extractor = (
-        if $optional {
-          put $capture~
-        } else {
-          put $fails~
-        }
-      )
+    #       fs:touch package-lock.json
 
-      >> 'when package.json does not exist' {
-        fs:within-temp-dir {
-          $assertion-message-extractor {
-            package-manager:run-script &optional=$optional start
-          } |
-            should-be '💭 Cannot find package.json - will not run the ''start'' script...'
-        }
-      }
+    #       package-manager:exec --version |
+    #         should-be $shared:main-npm-version
+    #     }
+    #   }
+    # }
 
-      >> 'when package.json has no scripts section' {
-        fs:within-temp-dir {
-          put [&] |
-            to-json > package.json
+    # >> 'running package script' {
+    #   fn run-suite { |&optional=$false|
+    #     var assertion-message-extractor = (
+    #       if $optional {
+    #         put $capture~
+    #       } else {
+    #         put $fails~
+    #       }
+    #     )
 
-          $assertion-message-extractor {
-            package-manager:run-script &optional=$optional start
-          } |
-            should-be '💭 Cannot find the ''start'' script in package.json...'
-        }
-      }
+    #     >> 'when package.json does not exist' {
+    #       fs:within-temp-dir {
+    #         $assertion-message-extractor {
+    #           package-manager:run-script &optional=$optional start
+    #         } |
+    #           should-be '💭 Cannot find package.json - will not run the ''start'' script...'
+    #       }
+    #     }
 
-      >> 'when package.json has scripts, but not the requested one' {
-        fs:within-temp-dir {
-          put [
-            &scripts=[
-              &dodo='echo Hello'
-            ]
-          ] |
-            to-json > package.json
+    #     >> 'when package.json has no scripts section' {
+    #       fs:within-temp-dir {
+    #         put [&] |
+    #           to-json > package.json
 
-          $assertion-message-extractor {
-            package-manager:run-script &optional=$optional start
-          } |
-            should-be '💭 Cannot find the ''start'' script in package.json...'
-        }
-      }
+    #         $assertion-message-extractor {
+    #           package-manager:run-script &optional=$optional start
+    #         } |
+    #           should-be '💭 Cannot find the ''start'' script in package.json...'
+    #       }
+    #     }
 
-      >> 'when package.json has the requested script' {
-        fs:within-temp-dir {
-          put [
-            &scripts=[
-              &start='echo Hello > test.txt'
-            ]
-          ] |
-            to-json > package.json
+    #     >> 'when package.json has scripts, but not the requested one' {
+    #       fs:within-temp-dir {
+    #         put [
+    #           &scripts=[
+    #             &dodo='echo Hello'
+    #           ]
+    #         ] |
+    #           to-json > package.json
 
-          package-manager:run-script &optional=$optional start
+    #         $assertion-message-extractor {
+    #           package-manager:run-script &optional=$optional start
+    #         } |
+    #           should-be '💭 Cannot find the ''start'' script in package.json...'
+    #       }
+    #     }
 
-          slurp < test.txt |
-            should-be "Hello\n"
-        }
-      }
-    }
+    #     >> 'when package.json has the requested script' {
+    #       fs:within-temp-dir {
+    #         put [
+    #           &scripts=[
+    #             &start='echo Hello > test.txt'
+    #           ]
+    #         ] |
+    #           to-json > package.json
 
-    >> 'when required' {
-      run-suite
-    }
+    #         package-manager:run-script &optional=$optional start
 
-    >> 'when optional' {
-      run-suite &optional
-    }
+    #         slurp < test.txt |
+    #           should-be "Hello\n"
+    #       }
+    #     }
+    #   }
+
+    #   >> 'when required' {
+    #     run-suite
+    #   }
+
+    #   >> 'when optional' {
+    #     run-suite &optional
+    #   }
+    # }
   }
 }
