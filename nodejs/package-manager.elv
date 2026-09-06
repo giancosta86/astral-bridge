@@ -85,7 +85,7 @@ fn -resolve-command { |command|
 }
 
 #
-# Runs the given command via the best version for the requested package manager in the current directory:
+# Runs the given command via the requested package manager in the current directory:
 #
 # 1. Call the `detect` function to infer the package manager for the project.
 #
@@ -101,7 +101,7 @@ fn -resolve-command { |command|
 #
 #    then execute `corepack install`, to ensure the requested package manager is installed.
 #
-# 3. Run the requested package manager, forwarding all the arguments.
+# 3. Run the package manager, forwarding all the arguments.
 #
 fn exec { |&install=$true @arguments|
   var detected-package-manager = (detect)
@@ -124,7 +124,7 @@ fn exec { |&install=$true @arguments|
 }
 
 #
-# Emits whether package.json exists and contains the required script in its "scripts" section.
+# Emits whether package.json exists and contains the given script in its "scripts" section.
 #
 fn has-script { |@arguments|
   var script = (lang:get-single-input $arguments)
@@ -141,8 +141,10 @@ fn has-script { |@arguments|
 }
 
 #
-# If package.json exists and contains the required script in its "scripts" section,
-# runs it, unless the &optional flag is set.
+# If package.json exists and contains the given script in its "scripts" section,
+# runs it via the requested package manager.
+#
+# If the script cannot be found, the command fails - unless the &optional flag is set.
 #
 fn run-script { |&optional=$false @arguments|
   var script = (lang:get-single-input $arguments)

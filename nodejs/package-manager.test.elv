@@ -297,22 +297,5 @@ use ./package-manager
         }
       }
     }
-
-    #         package-manager:run-script &optional=$optional start
-
-    #         slurp < test.txt |
-    #           should-be "Hello\n"
-    #       }
-    #     }
-    #   }
-
-    #   >> 'when required' {
-    #     run-suite
-    #   }
-
-    #   >> 'when optional' {
-    #     run-suite &optional
-    #   }
-    # }
   }
 }
