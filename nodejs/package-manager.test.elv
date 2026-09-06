@@ -129,6 +129,90 @@ use ./package-manager
       }
     }
 
+    >> 'execution' {
+      fn expect-package-manager { |&install=$true expected-package-manager block-within-temp-dir|
+        var resolver-spy = (command:spy { |package-manager-command|
+          put { |@package-manager-arguments|
+            put SAMPLE-VERSION
+          }
+        })
+
+        tmp package-manager:-resolve-command~ = $resolver-spy[command]
+
+        fs:within-temp-dir {
+          $block-within-temp-dir
+
+          package-manager:exec &install=$install --version |
+            should-be SAMPLE-VERSION
+
+          $resolver-spy[get-runs] |
+            should-be [
+              [$expected-package-manager]
+            ]
+        }
+      }
+
+      fn write-package-json-with-pnpm {
+        put [
+          &packageManager=pnpm@10.22.0
+        ] |
+          to-json > package.json
+      }
+
+      >> 'when corepack is not installed' {
+        tmp package-manager:-is-corepack-installed~ = { put $false }
+
+        tmp package-manager:-corepack~ = { |_| fail 'This should never be invoked' }
+
+        >> 'when the package manager is declared in package.json' {
+          expect-package-manager pnpm {
+            write-package-json-with-pnpm
+          }
+        }
+      }
+
+      >> 'when corepack is installed' {
+        tmp package-manager:-is-corepack-installed~ = { put $true }
+
+        >> 'when no clue is available' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager npm { }
+        }
+
+        >> 'when only the lockfile is available' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager yarn {
+            fs:touch yarn.lock
+          }
+        }
+
+        >> 'when the package manager is declared in package.json' {
+          var corepack-spy = (command:spy)
+
+          tmp package-manager:-corepack~ = $corepack-spy[command]
+
+          expect-package-manager pnpm {
+            write-package-json-with-pnpm
+          }
+
+          $corepack-spy[get-runs] |
+            should-be [
+              [install]
+            ]
+        }
+
+        >> 'when the install flag is disabled' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager &install=$false pnpm {
+            write-package-json-with-pnpm
+          }
+        }
+      }
+    }
+
     # >> 'running' {
     #   >> 'when the package manager is declared in package.json' {
     #     all [

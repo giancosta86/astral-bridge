@@ -4,6 +4,8 @@ use github.com/giancosta86/ethereal/v1/command
 use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
+var -corepack~ = (external corepack)
+
 #
 # Emits the name of the package manager described in package.json,
 # in any of the fields supported by corepack:
@@ -74,49 +76,51 @@ fn detect {
     coalesce (all) npm
 }
 
+fn -is-corepack-installed {
+  has-external corepack
+}
+
+fn -resolve-command { |command|
+  external $command
+}
+
 #
-# Runs the given command using the best version for the requested package manager in the current directory:
+# Runs the given command via the best version for the requested package manager in the current directory:
 #
-# 1. Use the `detect` function to detect the package manager for the project.
+# 1. Call the `detect` function to infer the package manager for the project.
 #
-# 2. If `&ensure-installed` is enabled:
+# 2. If these conditions are all met:
 #
-#    1. Verify these conditions are all met:
+#    * `&ensure-installed` is enabled
 #
-#       * the detected package manager is `npm`
+#    * the detected package manager is NOT `npm`
 #
-#       * `corepack` is available as a command
+#    * `corepack` is available as a command
 #
-#       * the package manager in package.json, within the current directory, is the detected one
+#    * the package manager declared in package.json matches the one already detected
 #
-#       If any of the above conditions is not met, don't proceed to the following steps.
+#    then execute `corepack install`, to ensure the requested package manager is installed.
 #
-#    2. Execute `corepack install`, to ensure the requested package manager version is available
+# 3. Run the requested package manager, forwarding all the arguments.
 #
-#    3. Run the requested package manager, forwarding all the arguments.
-#
-fn exec { |&ensure-installed=$true @arguments|
+fn exec { |&install=$true @arguments|
   var detected-package-manager = (detect)
 
   var not-using-npm = (
     not-eq $detected-package-manager npm
   )
 
-  if $detected-package-manager {
-    if (and $ensure-installed (has-external corepack) $not-using-npm) {
-      var detected-from-package-json = (-detect-from-package-json)
+  if (and $install $not-using-npm (-is-corepack-installed)) {
+    var detected-from-package-json = (detect-from-package-json)
 
-      if (eq $detected-from-package-json $detected-package-manager) {
-        command:silence {
-          corepack install
-        }
+    if (eq $detected-package-manager $detected-from-package-json) {
+      command:silence {
+        -corepack install
       }
     }
-
-    (external $detected-package-manager) $@arguments
-  } else {
-    npm $@arguments
   }
+
+  (-resolve-command $detected-package-manager) $@arguments
 }
 
 #
