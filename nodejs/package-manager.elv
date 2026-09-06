@@ -124,31 +124,34 @@ fn exec { |&install=$true @arguments|
 }
 
 #
-# If package.json exists and contains the required script in its "scripts" section, runs it.
+# Emits whether package.json exists and contains the required script in its "scripts" section.
 #
-fn run-script { |script &optional=$false|
-  var notify-error~ = { |message|
-    if $optional {
-      echo $message
-      return
-    } else {
-      fail $message
-    }
-  }
+fn has-script { |@arguments|
+  var script = (lang:get-single-input $arguments)
 
   if (not (os:is-regular package.json)) {
-    notify-error '💭 Cannot find package.json - will not run the '''$script''' script...'
+    put $false
+    return
   }
 
   var package-json = (from-json < package.json)
 
-  if (seq:drill-down $package-json scripts $script) {
-    echo 💫 Now running the "'"$script"'" script from package.json...
+  seq:drill-down $package-json scripts $script |
+    not-eq $nil
+}
 
+#
+# If package.json exists and contains the required script in its "scripts" section,
+# runs it, unless the &optional flag is set.
+#
+fn run-script { |&optional=$false @arguments|
+  var script = (lang:get-single-input $arguments)
+
+  if (has-script $script) {
     exec run $script
-
-    echo ✅ "'"$script"'" script executed!
   } else {
-    notify-error '💭 Cannot find the '''$script''' script in package.json...'
+    if (not $optional) {
+      fail 'Missing script in package.json: '$script
+    }
   }
 }
