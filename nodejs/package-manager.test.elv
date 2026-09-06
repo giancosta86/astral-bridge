@@ -213,100 +213,90 @@ use ./package-manager
       }
     }
 
-    # >> 'running' {
-    #   >> 'when the package manager is declared in package.json' {
-    #     all [
-    #       [yarn 3.2.3]
-    #       [pnpm 11.4.0]
-    #     ] | seq:spread { |name version|
-    #       >> 'for '$name {
-    #         fs:within-temp-dir {
-    #           put [
-    #             &packageManager=$name'@'$version
-    #           ] |
-    #             to-json > package.json
+    >> 'scripts' {
+      >> 'detection' {
+        >> 'when package.json is missing' {
+          fs:within-temp-dir {
+            package-manager:has-script my-script |
+              should-be $false
+          }
+        }
 
-    #           package-manager:exec --version |
-    #             should-match-regex '\b'$version'\b'
-    #         }
-    #       }
-    #     }
-    #   }
+        >> 'when package.json is empty' {
+          fs:within-temp-dir {
+            put [&] |
+              to-json > package.json
 
-    #   >> 'when package.json is missing' {
-    #     fs:within-temp-dir {
-    #       package-manager:exec --version |
-    #         should-be $shared:main-npm-version
-    #     }
-    #   }
+            package-manager:has-script my-script |
+              should-be $false
+          }
+        }
 
-    #   >> 'when package.json and npm lockfile are present' {
-    #     fs:within-temp-dir {
-    #       put [&] | to-json > package.json
+        >> 'when package.json has other scripts' {
+          fs:within-temp-dir {
+            put [
+              &scripts=[
+                [&other-script='...']
+              ]
+            ] |
+              to-json > package.json
 
-    #       fs:touch package-lock.json
+            package-manager:has-script my-script |
+              should-be $false
+          }
+        }
 
-    #       package-manager:exec --version |
-    #         should-be $shared:main-npm-version
-    #     }
-    #   }
-    # }
+        >> 'when package.json has the requested script' {
+          fs:within-temp-dir {
+            put [
+              &scripts=[
+                &my-script='...'
+              ]
+            ] |
+              to-json > package.json
 
-    # >> 'running package script' {
-    #   fn run-suite { |&optional=$false|
-    #     var assertion-message-extractor = (
-    #       if $optional {
-    #         put $capture~
-    #       } else {
-    #         put $fails~
-    #       }
-    #     )
+            package-manager:has-script my-script |
+              should-be $true
+          }
+        }
+      }
 
-    #     >> 'when package.json does not exist' {
-    #       fs:within-temp-dir {
-    #         $assertion-message-extractor {
-    #           package-manager:run-script &optional=$optional start
-    #         } |
-    #           should-be '💭 Cannot find package.json - will not run the ''start'' script...'
-    #       }
-    #     }
+      >> 'execution' {
+        >> 'when package.json is missing' {
+          >> 'by default' {
+            fs:within-temp-dir {
+              fails {
+                package-manager:run-script my-script
+              } |
+                should-be 'Missing script in package.json: my-script'
+            }
+          }
 
-    #     >> 'when package.json has no scripts section' {
-    #       fs:within-temp-dir {
-    #         put [&] |
-    #           to-json > package.json
+          >> 'when optional' {
+            fs:within-temp-dir {
+              package-manager:run-script &optional my-script
+            }
+          }
+        }
 
-    #         $assertion-message-extractor {
-    #           package-manager:run-script &optional=$optional start
-    #         } |
-    #           should-be '💭 Cannot find the ''start'' script in package.json...'
-    #       }
-    #     }
+        >> 'when package.json has the requested script' {
+          fs:within-temp-dir {
+            put [
+              &scripts=[
+                &my-script='echo Greetings!'
+              ]
+            ] |
+              to-json > package.json
 
-    #     >> 'when package.json has scripts, but not the requested one' {
-    #       fs:within-temp-dir {
-    #         put [
-    #           &scripts=[
-    #             &dodo='echo Hello'
-    #           ]
-    #         ] |
-    #           to-json > package.json
-
-    #         $assertion-message-extractor {
-    #           package-manager:run-script &optional=$optional start
-    #         } |
-    #           should-be '💭 Cannot find the ''start'' script in package.json...'
-    #       }
-    #     }
-
-    #     >> 'when package.json has the requested script' {
-    #       fs:within-temp-dir {
-    #         put [
-    #           &scripts=[
-    #             &start='echo Hello > test.txt'
-    #           ]
-    #         ] |
-    #           to-json > package.json
+            capture {
+              put my-script |
+                package-manager:run-script
+            } |
+              should-contain 'Greetings!'
+          }
+        }
+      }
+    }
 
     #         package-manager:run-script &optional=$optional start
 

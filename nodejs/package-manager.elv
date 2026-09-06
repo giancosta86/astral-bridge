@@ -137,7 +137,7 @@ fn has-script { |@arguments|
   var package-json = (from-json < package.json)
 
   seq:drill-down $package-json scripts $script |
-    not-eq $nil
+    not-eq $nil (all)
 }
 
 #
