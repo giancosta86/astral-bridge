@@ -21,8 +21,8 @@ fn -after-chdir-hook { |_|
         wrapper:nvm install --no-progress $requested-node-version
       }
     }
-  } catch {
-    # Just do nothing
+  } catch e {
+    show $e
   }
 }
 
