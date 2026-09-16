@@ -1,9 +1,10 @@
+use os
 use str
 use ./paths
 use github.com/giancosta86/ethereal/v1/command
 
 fn -ensure-installed {
-  if (command:exists-in-bash nvm) {
+  if (os:exists $paths:nvm-script) {
     return
   }
 
@@ -17,9 +18,10 @@ fn -ensure-installed {
 
   echo 🚀 nvm ready!
 }
+
 #
 # Wraps the Bash script for nvm - forwarding all of its arguments and emitting its output;
-# if the "nvm" command for Bash is not available, installs nvm first.
+# if the "nvm.sh" script does not exist, installs nvm first.
 #
 fn nvm { |@arguments|
   -ensure-installed
