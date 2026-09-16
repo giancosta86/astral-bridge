@@ -40,7 +40,7 @@ var nvm~ = $nvm:nvm~
 Optionally, you can add these lines to fully support a _per-directory NodeJS version_ via **nvm**:
 
 ```elvish
-nvm:register-chdir-hooks
+nvm:register-cd-hooks
 ```
 
 ## Package managers

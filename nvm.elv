@@ -1,6 +1,8 @@
-use ./-nvm/hooks
+use ./-nvm/cd-hooks
 use ./-nvm/wrapper
 
 var nvm~ = $wrapper:nvm~
 
-var register-chdir-hooks~ = $hooks:register-chdir-hooks~
+var register-cd-hooks~ = $cd-hooks:register~
+
+var setup-env~ = $cd-hooks:setup-env~

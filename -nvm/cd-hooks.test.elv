@@ -1,17 +1,17 @@
 use os
 use path
-use ./hooks
+use ./cd-hooks
 use ./wrapper
 
 fn get-nvm-runs { |block|
   var current-node-version = $nil
 
   var spy = (command:spy { |@arguments|
-    var sub-command = $arguments[0]
+    var command = $arguments[0]
 
-    if (eq $sub-command current) {
+    if (eq $command current) {
       put $current-node-version
-    } elif (has-value [install use] $sub-command) {
+    } elif (has-value [install use] $command) {
       set current-node-version = $arguments[-1]
     }
   })
@@ -24,11 +24,11 @@ fn get-nvm-runs { |block|
 }
 
 >> 'nvm' {
-  >> 'chdir hooks' {
+  >> 'cd hooks' {
     >> 'when no version is requested' {
       get-nvm-runs {
         fs:within-temp-dir {
-          hooks:-after-chdir-hook $pwd
+          cd-hooks:-after-cd
         }
       } |
         should-be []
@@ -44,8 +44,9 @@ fn get-nvm-runs { |block|
           var nested-dir = (path:join alpha beta gamma)
 
           os:mkdir-all $nested-dir
+          cd $nested-dir
 
-          hooks:-after-chdir-hook $nested-dir
+          cd-hooks:-after-cd
         }
       } |
         should-be [
@@ -72,8 +73,9 @@ fn get-nvm-runs { |block|
           var nested-dir = (path:join alpha beta gamma)
 
           os:mkdir-all $nested-dir
+          cd $nested-dir
 
-          hooks:-after-chdir-hook $nested-dir
+          cd-hooks:-after-cd
         }
       } |
         should-be [
@@ -102,7 +104,7 @@ fn get-nvm-runs { |block|
 
             fs:mkcd $nested-dir
 
-            hooks:register-chdir-hooks
+            cd-hooks:register
           }
         } |
           should-be [
