@@ -60,7 +60,7 @@ fn get-nvm-bin-for { |version|
         }
       } |
         should-be [
-          [install --no-progress BETA]
+          [install --no-progress vBETA]
         ]
     }
 

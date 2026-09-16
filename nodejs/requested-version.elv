@@ -8,20 +8,22 @@ use github.com/giancosta86/ethereal/v1/seq
 fn -detect-from-nvmrc { |directory|
   var nvmrc-path = (path:join $directory .nvmrc)
 
-  if (not (os:is-regular $nvmrc-path)) {
+  if (not (os:exists $nvmrc-path)) {
     put $nil
     return
   }
 
   slurp < $nvmrc-path |
     str:trim-space (all) |
-    seq:empty-to-default
+    seq:empty-to-default |
+    str:trim-prefix (all) v |
+    put 'v'(all)
 }
 
 fn -detect-from-package-json { |directory|
   var package-path = (path:join $directory package.json)
 
-  if (not (os:is-regular $package-path)) {
+  if (not (os:exists $package-path)) {
     put $nil
     return
   }
@@ -38,7 +40,7 @@ fn -detect-from-package-json { |directory|
     return
   }
 
-  var matches = [(re:find '\d+(?:\.\d+){0,3}' $version-field)]
+  var matches = [(re:find '\d+(?:\.\d+){0,2}' $version-field)]
 
   if (seq:is-non-empty $matches) {
     put 'v'$matches[0][text]

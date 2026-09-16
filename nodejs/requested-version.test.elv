@@ -14,7 +14,7 @@ fn write-test-package-json {
 
   put [
     &engines=[
-      &node='>='$version-for-json' <90'
+      &node='>='$version-for-json' <90.3.8'
     ]
   ] |
     to-json > package.json
@@ -22,36 +22,38 @@ fn write-test-package-json {
 
 >> 'NodeJS' {
   >> 'retrieving the requested version' {
-    >> 'from a directory containing only .nvmrc' {
-      fs:within-temp-dir {
-        write-test-nvmrc
+    >> 'from the current directory' {
+      >> 'when containing only .nvmrc' {
+        fs:within-temp-dir {
+          write-test-nvmrc
 
-        requested-version:detect-in-directory . |
-          should-be $nvmrc-version
+          requested-version:detect-in-directory . |
+            should-be $nvmrc-version
+        }
+      }
+
+      >> 'when containing only the package.json field' {
+        fs:within-temp-dir {
+          write-test-package-json
+
+          requested-version:detect-in-directory . |
+            should-be $package-json-version
+        }
+      }
+
+      >> 'when containing both .nvmrc and the package.json field' {
+        fs:within-temp-dir {
+          write-test-nvmrc
+          write-test-package-json
+
+          requested-version:detect-in-directory . |
+            should-be $nvmrc-version
+        }
       }
     }
 
-    >> 'from a directory containing only package.json field' {
-      fs:within-temp-dir {
-        write-test-package-json
-
-        requested-version:detect-in-directory . |
-          should-be $package-json-version
-      }
-    }
-
-    >> 'from a directory containing both .nvmrc and package.json field' {
-      fs:within-temp-dir {
-        write-test-nvmrc
-        write-test-package-json
-
-        requested-version:detect-in-directory . |
-          should-be $nvmrc-version
-      }
-    }
-
-    >> 'from a directory not directly containing such information' {
-      >> 'when an ancestor directory contains .nvmrc' {
+    >> 'from an ancestor directory' {
+      >> 'when containing only .nvmrc' {
         fs:within-temp-dir {
           write-test-nvmrc
 
@@ -66,7 +68,7 @@ fn write-test-package-json {
         }
       }
 
-      >> 'when an ancestor directory contains only package.json field' {
+      >> 'when containing only the package.json field' {
         fs:within-temp-dir {
           write-test-package-json
 
@@ -81,7 +83,7 @@ fn write-test-package-json {
         }
       }
 
-      >> 'when an ancestor directory contains both .nvmrc and package.json field' {
+      >> 'when containing both .nvmrc and the package.json field' {
         fs:within-temp-dir {
           write-test-nvmrc
           write-test-package-json
