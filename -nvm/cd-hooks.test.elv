@@ -35,6 +35,27 @@ fn get-nvm-bin-for { |version|
     }
   }
 
+  >> 'testing for version equality' {
+    >> 'when the versions are exactly the same' {
+      var version = 26.7.0
+
+      cd-hooks:-are-node-versions-equal $version $version |
+        should-be $true
+    }
+
+    >> 'when the versions only differ by a v' {
+      var version = 5.4.3
+
+      cd-hooks:-are-node-versions-equal 'v'$version $version |
+        should-be $true
+    }
+
+    >> 'when the versions are different' {
+      cd-hooks:-are-node-versions-equal 12.3.4 9.8.7 |
+        should-be $false
+    }
+  }
+
   >> 'cd hooks' {
     >> 'when no version is requested' {
       get-nvm-runs {
@@ -47,10 +68,10 @@ fn get-nvm-bin-for { |version|
 
     >> 'when version is requested via .nvmrc file in ancestor directory' {
       get-nvm-runs {
-        tmp E:NVM_BIN = (get-nvm-bin-for ALPHA)
+        tmp E:NVM_BIN = (get-nvm-bin-for SOME-VER)
 
         fs:within-temp-dir {
-          echo BETA > .nvmrc
+          echo 17.1.0 > .nvmrc
 
           var nested-dir = (path:join alpha beta gamma)
 
@@ -60,13 +81,13 @@ fn get-nvm-bin-for { |version|
         }
       } |
         should-be [
-          [install --no-progress vBETA]
+          [install --no-progress 17.1.0]
         ]
     }
 
     >> 'when version is requested via package.json in ancestor directory' {
       get-nvm-runs {
-        tmp E:NVM_BIN = (get-nvm-bin-for RO)
+        tmp E:NVM_BIN = (get-nvm-bin-for SOME-VER)
 
         fs:within-temp-dir {
           put [
@@ -84,7 +105,7 @@ fn get-nvm-bin-for { |version|
         }
       } |
         should-be [
-          [install --no-progress v1.2.3]
+          [install --no-progress 1.2.3]
         ]
     }
 
@@ -113,7 +134,7 @@ fn get-nvm-bin-for { |version|
     >> 'registration' {
       >> 'should run the hook on the current directory' {
         get-nvm-runs {
-          tmp E:NVM_BIN = (get-nvm-bin-for OMICRON)
+          tmp E:NVM_BIN = (get-nvm-bin-for SOME-VER)
 
           fs:within-temp-dir {
             put [
@@ -133,7 +154,7 @@ fn get-nvm-bin-for { |version|
           should-be [
             [--version]
 
-            [install --no-progress v90.92.98]
+            [install --no-progress 90.92.98]
           ]
       }
     }

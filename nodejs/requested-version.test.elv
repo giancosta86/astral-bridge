@@ -3,14 +3,14 @@ use ./requested-version
 
 var nvmrc-version = v18.17.1
 
-var package-json-version = v16.14.0
+var package-json-version = 16.14.0
 
 fn write-test-nvmrc {
   echo $nvmrc-version > .nvmrc
 }
 
 fn write-test-package-json {
-  var version-for-json = $package-json-version[1..]
+  var version-for-json = $package-json-version
 
   put [
     &engines=[

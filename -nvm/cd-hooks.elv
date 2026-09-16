@@ -1,6 +1,7 @@
 use os
 use path
 use github.com/giancosta86/ethereal/v1/elvish/cd-hooks
+use github.com/giancosta86/ethereal/v1/semver
 use github.com/giancosta86/ethereal/v1/seq
 use ../nodejs/requested-version
 use ./wrapper
@@ -14,13 +15,27 @@ fn -detect-current-node {
   }
 }
 
+fn -are-node-versions-equal { |left right|
+  try {
+    var left-version = (semver:parse $left)
+
+    var right-version = (semver:parse $right)
+
+    eq $left-version $right-version
+  } catch {
+    put $false
+  }
+}
+
 fn -after-cd {
   var requested-node-version = (requested-version:detect-recursively $pwd)
 
   if $requested-node-version {
     var current-node-version = (-detect-current-node)
 
-    if (not-eq $current-node-version $requested-node-version) {
+    if (
+      not (-are-node-versions-equal $current-node-version $requested-node-version)
+    ) {
       wrapper:nvm install --no-progress $requested-node-version
     }
   }

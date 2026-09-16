@@ -15,9 +15,7 @@ fn -detect-from-nvmrc { |directory|
 
   slurp < $nvmrc-path |
     str:trim-space (all) |
-    seq:empty-to-default |
-    str:trim-prefix (all) v |
-    put 'v'(all)
+    seq:empty-to-default
 }
 
 fn -detect-from-package-json { |directory|
@@ -43,7 +41,7 @@ fn -detect-from-package-json { |directory|
   var matches = [(re:find '\d+(?:\.\d+){0,2}' $version-field)]
 
   if (seq:is-non-empty $matches) {
-    put 'v'$matches[0][text]
+    put $matches[0][text]
   } else {
     put $nil
   }
