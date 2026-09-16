@@ -1,20 +1,11 @@
 use os
 use path
 use ./cd-hooks
+use ./paths
 use ./wrapper
 
 fn get-nvm-runs { |block|
-  var current-node-version = $nil
-
-  var spy = (command:spy { |@arguments|
-    var command = $arguments[0]
-
-    if (eq $command current) {
-      put $current-node-version
-    } elif (has-value [install use] $command) {
-      set current-node-version = $arguments[-1]
-    }
-  })
+  var spy = (command:spy)
 
   tmp wrapper:nvm~ = $spy[command]
 
@@ -23,7 +14,27 @@ fn get-nvm-runs { |block|
   $spy[get-runs]
 }
 
+fn get-nvm-bin-for { |version|
+  path:join $paths:nvm-home versions node $version bin
+}
+
 >> 'nvm' {
+  >> 'detecting current version' {
+    >> 'when detectable' {
+      tmp E:NVM_BIN = (get-nvm-bin-for v25.4.0)
+
+      cd-hooks:-detect-current-node |
+        should-be v25.4.0
+    }
+
+    >> 'when not detectable' {
+      tmp E:NVM_BIN = ''
+
+      cd-hooks:-detect-current-node |
+        should-be $nil
+    }
+  }
+
   >> 'cd hooks' {
     >> 'when no version is requested' {
       get-nvm-runs {
@@ -36,66 +47,78 @@ fn get-nvm-runs { |block|
 
     >> 'when version is requested via .nvmrc file in ancestor directory' {
       get-nvm-runs {
-        wrapper:nvm use ALPHA
+        tmp E:NVM_BIN = (get-nvm-bin-for ALPHA)
 
         fs:within-temp-dir {
           echo BETA > .nvmrc
 
           var nested-dir = (path:join alpha beta gamma)
 
-          os:mkdir-all $nested-dir
-          cd $nested-dir
+          fs:mkcd $nested-dir
 
           cd-hooks:-after-cd
         }
       } |
         should-be [
-          [use ALPHA]
-
-          [current]
-
           [install --no-progress BETA]
         ]
     }
 
     >> 'when version is requested via package.json in ancestor directory' {
       get-nvm-runs {
-        wrapper:nvm use RO
+        tmp E:NVM_BIN = (get-nvm-bin-for RO)
 
         fs:within-temp-dir {
           put [
             &engines=[
-              &node=v1.2.3
+              &node=1.2.3
             ]
           ] |
             to-json > package.json
 
           var nested-dir = (path:join alpha beta gamma)
 
-          os:mkdir-all $nested-dir
-          cd $nested-dir
+          fs:mkcd $nested-dir
 
           cd-hooks:-after-cd
         }
       } |
         should-be [
-          [use RO]
-
-          [current]
-
           [install --no-progress v1.2.3]
         ]
+    }
+
+    >> 'when the requested version coincides with the current one' {
+      get-nvm-runs {
+        tmp E:NVM_BIN = (get-nvm-bin-for v26.7.0)
+
+        fs:within-temp-dir {
+          put [
+            &engines=[
+              &node=26.7.0
+            ]
+          ] |
+            to-json > package.json
+
+          var nested-dir = (path:join alpha beta gamma)
+
+          fs:mkcd $nested-dir
+
+          cd-hooks:-after-cd
+        }
+      } |
+        should-be []
     }
 
     >> 'registration' {
       >> 'should run the hook on the current directory' {
         get-nvm-runs {
-          wrapper:nvm use OMICRON
+          tmp E:NVM_BIN = (get-nvm-bin-for OMICRON)
 
           fs:within-temp-dir {
             put [
               &engines=[
-                &node=v90.92.98
+                &node=90.92.98
               ]
             ] |
               to-json > package.json
@@ -108,11 +131,7 @@ fn get-nvm-runs { |block|
           }
         } |
           should-be [
-            [use OMICRON]
-
             [--version]
-
-            [current]
 
             [install --no-progress v90.92.98]
           ]
