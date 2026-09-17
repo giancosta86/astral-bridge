@@ -120,6 +120,20 @@ use ./package-manager
           }
         }
 
+        >> 'when all clues are available' {
+          fs:within-temp-dir {
+            put [
+              &packageManager=yarn@3.2.3
+            ] |
+              to-json > package.json
+
+            fs:touch pnpm-lock.yaml
+
+            package-manager:detect |
+              should-be yarn
+          }
+        }
+
         >> 'when no clue is available' {
           fs:within-temp-dir {
             package-manager:detect |
@@ -130,20 +144,19 @@ use ./package-manager
     }
 
     >> 'execution' {
-      fn expect-package-manager { |&install=$true expected-package-manager block-within-temp-dir|
+      fn expect-package-manager { |&install=$true expected-package-manager temp-dir-init|
         var resolver-spy = (command:spy { |package-manager-command|
           put { |@package-manager-arguments|
-            put SAMPLE-VERSION
+            # Fake package manager implementation
           }
         })
 
-        tmp package-manager:-resolve-command~ = $resolver-spy[command]
+        tmp package-manager:-resolve-external~ = $resolver-spy[command]
 
         fs:within-temp-dir {
-          $block-within-temp-dir
+          $temp-dir-init
 
-          package-manager:exec &install=$install --version |
-            should-be SAMPLE-VERSION
+          package-manager:exec &install=$install --version
 
           $resolver-spy[get-runs] |
             should-be [
@@ -159,15 +172,25 @@ use ./package-manager
           to-json > package.json
       }
 
+      fn write-yarn-lockfile {
+        fs:touch yarn.lock
+      }
+
       >> 'when corepack is not installed' {
         tmp package-manager:-is-corepack-installed~ = { put $false }
 
         tmp package-manager:-corepack~ = { |_| fail 'This should never be invoked' }
 
+        >> 'when no clue is available' {
+          expect-package-manager npm { }
+        }
+
         >> 'when the package manager is declared in package.json' {
-          expect-package-manager pnpm {
-            write-package-json-with-pnpm
-          }
+          expect-package-manager pnpm $write-package-json-with-pnpm~
+        }
+
+        >> 'when only the lockfile is available' {
+          expect-package-manager yarn $write-yarn-lockfile~
         }
       }
 
@@ -178,14 +201,6 @@ use ./package-manager
           tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
 
           expect-package-manager npm { }
-        }
-
-        >> 'when only the lockfile is available' {
-          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
-
-          expect-package-manager yarn {
-            fs:touch yarn.lock
-          }
         }
 
         >> 'when the package manager is declared in package.json' {
@@ -201,6 +216,12 @@ use ./package-manager
             should-be [
               [install]
             ]
+        }
+
+        >> 'when only the lockfile is available' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager yarn $write-yarn-lockfile~
         }
 
         >> 'when the install flag is disabled' {

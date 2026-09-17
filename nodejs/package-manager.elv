@@ -80,7 +80,7 @@ fn -is-corepack-installed {
   has-external corepack
 }
 
-fn -resolve-command { |command|
+fn -resolve-external { |command|
   external $command
 }
 
@@ -99,7 +99,7 @@ fn -resolve-command { |command|
 #
 #    * the package manager declared in package.json matches the one already detected
 #
-#    then execute `corepack install`, to ensure the requested package manager is installed.
+#    then silently execute `corepack install`, to ensure the requested package manager is installed.
 #
 # 3. Run the package manager, forwarding all the arguments.
 #
@@ -120,7 +120,7 @@ fn exec { |&install=$true @arguments|
     }
   }
 
-  (-resolve-command $detected-package-manager) $@arguments
+  (-resolve-external $detected-package-manager) $@arguments
 }
 
 #
