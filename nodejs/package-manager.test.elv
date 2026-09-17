@@ -1,0 +1,322 @@
+use ./package-manager
+
+>> 'NodeJS' {
+  >> 'package manager' {
+    >> 'detection' {
+      >> 'from package.json' {
+        fn expect-package-manager { |package-json expected-package-manager|
+          fs:within-temp-dir {
+            if $package-json {
+              put $package-json |
+                to-json > package.json
+            }
+
+            package-manager:detect-from-package-json |
+              should-be $expected-package-manager
+          }
+        }
+
+        >> 'when package.json is missing' {
+          expect-package-manager $nil $nil
+        }
+
+        >> 'when package.json has no supported fields' {
+          expect-package-manager [&] $nil
+        }
+
+        >> 'when the root packageManager field is declared' {
+          >> 'with name and version' {
+            expect-package-manager [
+              &packageManager=yarn@3.2.3
+            ] yarn
+          }
+
+          >> 'with just the name' {
+            expect-package-manager [
+              &packageManager=pnpm
+            ] pnpm
+          }
+        }
+
+        >> 'when the devEngines/packageManager field is declared' {
+          expect-package-manager [
+            &devEngines=[
+              &packageManager=[
+                &name=yarn
+                &version=3.2.3
+              ]
+            ]
+          ] yarn
+        }
+
+        >> 'when both fields are declared' {
+          expect-package-manager [
+            &packageManager=pnpm
+            &devEngines=[
+              &packageManager=[
+                &name=yarn
+                &version=3.2.3
+              ]
+            ]
+          ] pnpm
+        }
+      }
+
+      >> 'from lockfile' {
+        >> 'when no lockfile is present' {
+          fs:within-temp-dir {
+            package-manager:detect-from-lockfile |
+              should-be $nil
+          }
+        }
+
+        >> 'when pnpm lockfile is present' {
+          fs:within-temp-dir {
+            fs:touch pnpm-lock.yaml
+
+            package-manager:detect-from-lockfile |
+              should-be pnpm
+          }
+        }
+
+        >> 'when yarn lockfile is present' {
+          fs:within-temp-dir {
+            fs:touch yarn.lock
+
+            package-manager:detect-from-lockfile |
+              should-be yarn
+          }
+        }
+
+        >> 'when npm lockfile is present' {
+          fs:within-temp-dir {
+            fs:touch package-lock.json
+
+            package-manager:detect-from-lockfile |
+              should-be npm
+          }
+        }
+      }
+
+      >> 'with multiple methods' {
+        >> 'when package.json is conclusive' {
+          fs:within-temp-dir {
+            put [
+              &packageManager=yarn@3.2.3
+            ] |
+              to-json > package.json
+
+            package-manager:detect |
+              should-be yarn
+          }
+        }
+
+        >> 'when lockfile is conclusive' {
+          fs:within-temp-dir {
+            fs:touch pnpm-lock.yaml
+
+            package-manager:detect |
+              should-be pnpm
+          }
+        }
+
+        >> 'when all clues are available' {
+          fs:within-temp-dir {
+            put [
+              &packageManager=yarn@3.2.3
+            ] |
+              to-json > package.json
+
+            fs:touch pnpm-lock.yaml
+
+            package-manager:detect |
+              should-be yarn
+          }
+        }
+
+        >> 'when no clue is available' {
+          fs:within-temp-dir {
+            package-manager:detect |
+              should-be npm
+          }
+        }
+      }
+    }
+
+    >> 'execution' {
+      fn expect-package-manager { |&install=$true expected-package-manager temp-dir-init|
+        var resolver-spy = (command:spy { |package-manager-command|
+          put { |@package-manager-arguments|
+            # Fake package manager implementation
+          }
+        })
+
+        tmp package-manager:-resolve-external~ = $resolver-spy[command]
+
+        fs:within-temp-dir {
+          $temp-dir-init
+
+          package-manager:exec &install=$install --version
+
+          $resolver-spy[get-runs] |
+            should-be [
+              [$expected-package-manager]
+            ]
+        }
+      }
+
+      fn write-package-json-with-pnpm {
+        put [
+          &packageManager=pnpm@10.22.0
+        ] |
+          to-json > package.json
+      }
+
+      fn write-yarn-lockfile {
+        fs:touch yarn.lock
+      }
+
+      >> 'when corepack is not installed' {
+        tmp package-manager:-is-corepack-installed~ = { put $false }
+
+        tmp package-manager:-corepack~ = { |_| fail 'This should never be invoked' }
+
+        >> 'when no clue is available' {
+          expect-package-manager npm { }
+        }
+
+        >> 'when the package manager is declared in package.json' {
+          expect-package-manager pnpm $write-package-json-with-pnpm~
+        }
+
+        >> 'when only the lockfile is available' {
+          expect-package-manager yarn $write-yarn-lockfile~
+        }
+      }
+
+      >> 'when corepack is installed' {
+        tmp package-manager:-is-corepack-installed~ = { put $true }
+
+        >> 'when no clue is available' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager npm { }
+        }
+
+        >> 'when the package manager is declared in package.json' {
+          var corepack-spy = (command:spy)
+
+          tmp package-manager:-corepack~ = $corepack-spy[command]
+
+          expect-package-manager pnpm {
+            write-package-json-with-pnpm
+          }
+
+          $corepack-spy[get-runs] |
+            should-be [
+              [install]
+            ]
+        }
+
+        >> 'when only the lockfile is available' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager yarn $write-yarn-lockfile~
+        }
+
+        >> 'when the install flag is disabled' {
+          tmp package-manager:-corepack~ = { |_| fail 'This should never be called!' }
+
+          expect-package-manager &install=$false pnpm {
+            write-package-json-with-pnpm
+          }
+        }
+      }
+    }
+
+    >> 'scripts' {
+      >> 'detection' {
+        >> 'when package.json is missing' {
+          fs:within-temp-dir {
+            package-manager:has-script my-script |
+              should-be $false
+          }
+        }
+
+        >> 'when package.json is empty' {
+          fs:within-temp-dir {
+            put [&] |
+              to-json > package.json
+
+            package-manager:has-script my-script |
+              should-be $false
+          }
+        }
+
+        >> 'when package.json has other scripts' {
+          fs:within-temp-dir {
+            put [
+              &scripts=[
+                [&other-script='...']
+              ]
+            ] |
+              to-json > package.json
+
+            package-manager:has-script my-script |
+              should-be $false
+          }
+        }
+
+        >> 'when package.json has the requested script' {
+          fs:within-temp-dir {
+            put [
+              &scripts=[
+                &my-script='...'
+              ]
+            ] |
+              to-json > package.json
+
+            package-manager:has-script my-script |
+              should-be $true
+          }
+        }
+      }
+
+      >> 'execution' {
+        >> 'when package.json is missing' {
+          >> 'by default' {
+            fs:within-temp-dir {
+              fails {
+                package-manager:run-script my-script
+              } |
+                should-be 'Missing script in package.json: my-script'
+            }
+          }
+
+          >> 'when optional' {
+            fs:within-temp-dir {
+              package-manager:run-script &optional my-script
+            }
+          }
+        }
+
+        >> 'when package.json has the requested script' {
+          fs:within-temp-dir {
+            put [
+              &scripts=[
+                &my-script='echo Greetings!'
+              ]
+            ] |
+              to-json > package.json
+
+            capture {
+              put my-script |
+                package-manager:run-script
+            } |
+              should-contain 'Greetings!'
+          }
+        }
+      }
+    }
+  }
+}
