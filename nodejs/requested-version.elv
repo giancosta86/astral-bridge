@@ -2,6 +2,7 @@ use os
 use path
 use re
 use str
+use github.com/giancosta86/ethereal/v1/fs
 use github.com/giancosta86/ethereal/v1/lang
 use github.com/giancosta86/ethereal/v1/seq
 
@@ -74,23 +75,5 @@ fn detect-in-directory { |@arguments|
 # Returns either the requested version or $nil.
 #
 fn detect-recursively { |initial-directory|
-  var current-directory = (path:abs $initial-directory)
-
-  while $true {
-    var version = (detect-in-directory $current-directory)
-
-    if $version {
-      put $version
-      return
-    }
-
-    var parent-directory = (path:dir $current-directory)
-
-    if (eq $parent-directory $current-directory) {
-      put $nil
-      return
-    }
-
-    set current-directory = $parent-directory
-  }
+  fs:process-ancestors $initial-directory $detect-in-directory~
 }
